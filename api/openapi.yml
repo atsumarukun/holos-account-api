@@ -1,0 +1,21 @@
+openapi: "3.0.3"
+
+info:
+  title: "holos: 認証認可 API"
+  version: ""
+
+servers:
+  - url: "http://localhost:8001"
+    description: "localhost"
+  - url: "http://auth-server:8000"
+    description: "docker compose service"
+
+paths:
+  /health:
+    get:
+      summary: "ヘルスチェック"
+      tags:
+        - "health"
+      responses:
+        204:
+          description: "成功"
