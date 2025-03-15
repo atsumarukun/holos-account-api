@@ -1,6 +1,6 @@
 ---
-name: "機能更新"
-about: "機能更新"
+name: "機能"
+about: "機能"
 title: "【】"
 labels: ["enhancement"]
 assignees: ["username"]
