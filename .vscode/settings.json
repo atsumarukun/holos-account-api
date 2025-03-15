@@ -3,4 +3,11 @@
   "[go]": {
     "editor.defaultFormatter": "golang.go",
   },
+  "[sql]": {
+    "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc",
+  },
+  "SQL-Formatter-VSCode.keywordCase": "upper",
+  "SQL-Formatter-VSCode.dataTypeCase": "upper",
+  "SQL-Formatter-VSCode.functionCase": "upper",
+  "SQL-Formatter-VSCode.identifierCase": "upper",
 }
