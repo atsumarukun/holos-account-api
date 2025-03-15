@@ -2,7 +2,18 @@
 
 ## 開発環境
 
-以下のDesignDocに詳細を記載.<br />
+下記コマンドを用いて.envの作成を行う.
+```bash
+cp .env.example .env
+```
+その後[DevContainerを用いたコンテナの立ち上げ](https://code.visualstudio.com/docs/devcontainers/create-dev-container#:~:text=With%20the%20above%20devcontainer.json,Reopen%20in%20Container%20command)を行う.<br />
+DevContainerを利用しない場合は下記コマンドでコンテナを立ち上げる.
+```bash
+docker compose up -d
+docker compose exec account-api air -c .air.toml
+```
+
+開発環境の詳細は以下のDesignDocに記載.<br />
 [development-environment.md](https://github.com/atsumarukun/holos-account-api/blob/main/docs/design-docs/development-environment/development-environment.md)
 
 ## ルール
