@@ -98,6 +98,11 @@ https://github.com/uber-go/mock
 go-sqlmock:<br />
 https://github.com/DATA-DOG/go-sqlmock
 
+### Linter
+
+golangci-lint:<br />
+https://github.com/golangci/golangci-lint
+
 # その他の手法
 
 # 参考文献
