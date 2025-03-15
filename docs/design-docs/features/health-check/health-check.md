@@ -33,7 +33,7 @@ sequenceDiagram
 
 # 詳細設計
 
-Handler層で204を返却し、Usecase層やDomain層の実装は行わない.
+Interface層で204を返却し、Usecase層やDomain層の実装は行わない.
 
 # その他の手法
 
