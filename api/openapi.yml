@@ -18,4 +18,193 @@ paths:
         - "health"
       responses:
         204:
-          description: "成功"
+          $ref: "#/components/responses/204"
+  /accounts:
+    post:
+      summary: "アカウント作成"
+      tags:
+        - "accounts"
+      requestBody:
+        $ref: "#/components/requestBodies/create_account"
+      responses:
+        201:
+          $ref: "#/components/responses/create_account"
+        400:
+          $ref: "#/components/responses/400"
+        500:
+          $ref: "#/components/responses/500"
+    delete:
+      summary: "アカウント削除"
+      tags:
+        - "accounts"
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          schema:
+            type: "string"
+          required: true
+          description: "セッションID"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      responses:
+        204:
+          $ref: "#/components/responses/204"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/name:
+    put:
+      summary: "アカウント名更新"
+      tags:
+        - "accounts"
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          schema:
+            type: "string"
+          required: true
+          description: "セッションID"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      requestBody:
+        $ref: "#/components/requestBodies/update_account_name"
+      responses:
+        201:
+          $ref: "#/components/responses/update_account_name"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/password:
+    put:
+      summary: "パスワード更新"
+      tags:
+        - "accounts"
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          schema:
+            type: "string"
+          required: true
+          description: "セッションID"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      requestBody:
+        $ref: "#/components/requestBodies/update_account_password"
+      responses:
+        201:
+          $ref: "#/components/responses/update_account_password"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: http
+      scheme: Session
+
+  schemas:
+    account:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "name"
+        password:
+          type: "string"
+          example: "password"
+          writeOnly: true
+        confirm_password:
+          type: "string"
+          example: "password"
+          writeOnly: true
+      required:
+        - "id"
+        - "name"
+        - "password"
+        - "confirm_password"
+
+  requestBodies:
+    create_account:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/account"
+    update_account_name:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  password:
+                    readOnly: true
+                  confirm_password:
+                    readOnly: true
+    update_account_password:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  name:
+                    readOnly: true
+
+  responses:
+    create_account:
+      description: "Success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/account"
+    update_account_name:
+      description: "Success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/account"
+    update_account_password:
+      description: "Success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/account"
+    204:
+      description: "Success"
+    400:
+      description: "Bad Request"
+      content:
+        text/plain:
+          schema:
+            type: "string"
+            example: "bad request"
+    401:
+      description: "Unauthorized"
+      content:
+        text/plain:
+          schema:
+            type: "string"
+            example: "unauthorized"
+    500:
+      description: "Internal Server Error"
+      content:
+        text/plain:
+          schema:
+            type: "string"
+            example: "internal server error"
