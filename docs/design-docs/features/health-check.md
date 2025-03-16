@@ -27,7 +27,7 @@ sequenceDiagram
   participant client as クライアント
   participant server as サーバー
 
-  client ->>+ server: request (path: /health)
+  client ->>+ server: ヘルスチェック
   server -->>- client: 204
 ```
 
