@@ -17,7 +17,11 @@ func TestNewAccount(t *testing.T) {
 		inputPassword        string
 		inputConfirmPassword string
 		expectError          error
-	}{}
+	}{
+		{name: "success", inputName: "name", inputPassword: "password", inputConfirmPassword: "password", expectError: nil},
+		{name: "invalid name", inputName: "", inputPassword: "password", inputConfirmPassword: "password", expectError: status.ErrBadRequest},
+		{name: "invalid password", inputName: "name", inputPassword: "", inputConfirmPassword: "", expectError: status.ErrBadRequest},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			account, err := entity.NewAccount(tt.inputName, tt.inputPassword, tt.inputConfirmPassword)
