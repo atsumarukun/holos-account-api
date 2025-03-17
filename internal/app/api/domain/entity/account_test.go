@@ -1,7 +1,6 @@
 package entity_test
 
 import (
-	"errors"
 	"strings"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestNewAccount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			account, err := entity.NewAccount(tt.inputName, tt.inputPassword, tt.inputConfirmPassword)
-			if !errors.Is(err, tt.expectError) {
+			if !status.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -79,7 +78,7 @@ func TestAccount_SetName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := account.SetName(tt.inputName); !errors.Is(err, tt.expectError) {
+			if err := account.SetName(tt.inputName); !status.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 		})
@@ -114,7 +113,7 @@ func TestAccount_SetPassword(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := account.SetPassword(tt.inputPassword, tt.inputConfirmPassword); !errors.Is(err, tt.expectError) {
+			if err := account.SetPassword(tt.inputPassword, tt.inputConfirmPassword); !status.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 			if tt.expectError == nil {
