@@ -1,9 +1,11 @@
 package entity
 
 import (
-	"errors"
+	"regexp"
 
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Account struct {
@@ -13,7 +15,19 @@ type Account struct {
 }
 
 func NewAccount(name string, password string, confirmPassword string) (*Account, error) {
-	return nil, errors.New("not implemented")
+	var account Account
+
+	if err := account.generateID(); err != nil {
+		return nil, err
+	}
+	if err := account.SetName(name); err != nil {
+		return nil, err
+	}
+	if err := account.SetPassword(password, confirmPassword); err != nil {
+		return nil, err
+	}
+
+	return &account, nil
 }
 
 func RestoreAccount(id uuid.UUID, name string, password string) *Account {
@@ -25,9 +39,43 @@ func RestoreAccount(id uuid.UUID, name string, password string) *Account {
 }
 
 func (a *Account) SetName(name string) error {
-	return errors.New("not implemented")
+	if len(name) < 3 || 24 < len(name) {
+		return status.ErrBadRequest
+	}
+	if matched, err := regexp.MatchString(`^[A-Za-z0-9_]*$`, name); err != nil {
+		return status.FromError(err)
+	} else if !matched {
+		return status.ErrBadRequest
+	}
+	a.Name = name
+	return nil
 }
 
 func (a *Account) SetPassword(password string, confirmPassword string) error {
-	return errors.New("not implemented")
+	if password != confirmPassword {
+		return status.ErrBadRequest
+	}
+	if len(password) < 8 || 72 < len(password) {
+		return status.ErrBadRequest
+	}
+	if matched, err := regexp.MatchString(`^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>?/\\|~]*$`, password); err != nil {
+		return status.FromError(err)
+	} else if !matched {
+		return status.ErrBadRequest
+	}
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return status.FromError(err)
+	}
+	a.Password = string(hashed)
+	return nil
+}
+
+func (a *Account) generateID() error {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return status.FromError(err)
+	}
+	a.ID = id
+	return nil
 }
