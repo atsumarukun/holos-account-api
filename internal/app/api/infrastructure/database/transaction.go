@@ -51,11 +51,14 @@ func (to *transactionObject) Transaction(ctx context.Context, fn func(context.Co
 	return nil
 }
 
-// TODO: プライベートに変更する.
-type Driver interface{}
+type driver interface {
+	sqlx.Queryer
+	sqlx.QueryerContext
+	sqlx.Execer
+	sqlx.ExecerContext
+}
 
-// TODO: プライベートに変更する.
-func GetDriver(ctx context.Context, db *sqlx.DB) Driver {
+func getDriver(ctx context.Context, db *sqlx.DB) driver {
 	if tx, ok := ctx.Value(transactionKey{}).(*sqlx.Tx); ok {
 		return tx
 	}
