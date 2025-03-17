@@ -31,6 +31,8 @@ paths:
           $ref: "#/components/responses/create_account"
         400:
           $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
     delete:
@@ -78,6 +80,8 @@ paths:
           $ref: "#/components/responses/400"
         401:
           $ref: "#/components/responses/401"
+        409:
+          $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
   /accounts/password:
@@ -201,6 +205,13 @@ components:
           schema:
             type: "string"
             example: "unauthorized"
+    409:
+      description: "Conflict"
+      content:
+        text/plain:
+          schema:
+            type: "string"
+            example: "conflict"
     500:
       description: "Internal Server Error"
       content:
