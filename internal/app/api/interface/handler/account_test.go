@@ -76,7 +76,7 @@ func TestAccount_Create(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/user", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/accounts", bytes.NewBuffer(tt.requestJSON))
 			if err != nil {
 				t.Error(err)
 			}
