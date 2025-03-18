@@ -16,6 +16,6 @@ func Handle(c *gin.Context, err error) {
 	if v, ok := err.(*status.Status); ok {
 		c.JSON(codes[v.Code()], map[string]string{"message": v.Message()})
 	} else {
-		c.JSON(http.StatusInternalServerError, map[string]string{"message": status.ErrInternal.(*status.Status).Message()})
+		c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
 	}
 }

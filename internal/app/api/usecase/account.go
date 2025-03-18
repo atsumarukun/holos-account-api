@@ -34,7 +34,7 @@ func NewAccountUsecase(
 	}
 }
 
-func (u *accountUsecase) Create(ctx context.Context, name string, password string, confirmPassword string) (*dto.AccountDTO, error) {
+func (u *accountUsecase) Create(ctx context.Context, name, password, confirmPassword string) (*dto.AccountDTO, error) {
 	account, err := entity.NewAccount(name, password, confirmPassword)
 	if err != nil {
 		return nil, err

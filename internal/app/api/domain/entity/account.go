@@ -15,7 +15,7 @@ type Account struct {
 	Password string
 }
 
-func NewAccount(name string, password string, confirmPassword string) (*Account, error) {
+func NewAccount(name, password, confirmPassword string) (*Account, error) {
 	var account Account
 
 	if err := account.generateID(); err != nil {
@@ -31,7 +31,7 @@ func NewAccount(name string, password string, confirmPassword string) (*Account,
 	return &account, nil
 }
 
-func RestoreAccount(id uuid.UUID, name string, password string) *Account {
+func RestoreAccount(id uuid.UUID, name, password string) *Account {
 	return &Account{
 		ID:       id,
 		Name:     name,
@@ -52,7 +52,7 @@ func (a *Account) SetName(name string) error {
 	return nil
 }
 
-func (a *Account) SetPassword(password string, confirmPassword string) error {
+func (a *Account) SetPassword(password, confirmPassword string) error {
 	if password != confirmPassword {
 		return status.ErrBadRequest
 	}
