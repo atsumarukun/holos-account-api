@@ -43,7 +43,7 @@ func (a *Account) SetName(name string) error {
 		return status.ErrBadRequest
 	}
 	if matched, err := regexp.MatchString(`^[A-Za-z0-9_]*$`, name); err != nil {
-		return status.FromError(err)
+		return err
 	} else if !matched {
 		return status.ErrBadRequest
 	}
@@ -59,13 +59,13 @@ func (a *Account) SetPassword(password string, confirmPassword string) error {
 		return status.ErrBadRequest
 	}
 	if matched, err := regexp.MatchString(`^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>?/\\|~]*$`, password); err != nil {
-		return status.FromError(err)
+		return err
 	} else if !matched {
 		return status.ErrBadRequest
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return status.FromError(err)
+		return err
 	}
 	a.Password = string(hashed)
 	return nil
@@ -74,7 +74,7 @@ func (a *Account) SetPassword(password string, confirmPassword string) error {
 func (a *Account) generateID() error {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return status.FromError(err)
+		return err
 	}
 	a.ID = id
 	return nil

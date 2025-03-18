@@ -1,7 +1,6 @@
 package status
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status/code"
@@ -51,13 +50,4 @@ func (e *Status) Code() code.StatusCode {
 
 func (e *Status) Message() string {
 	return e.message
-}
-
-func Is(err error, target error) bool {
-	if e, ok := err.(*Status); ok {
-		if t, ok := err.(*Status); ok {
-			return e.code == t.code && e.message == t.message
-		}
-	}
-	return errors.Is(err, target)
 }

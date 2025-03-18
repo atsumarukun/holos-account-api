@@ -2,6 +2,7 @@ package database_test
 
 import (
 	"database/sql"
+	"errors"
 	"regexp"
 	"testing"
 
@@ -48,7 +49,7 @@ func TestAccount_Create(t *testing.T) {
 		{
 			name:         "insert error",
 			inputAccount: account,
-			expectError:  status.FromError(sql.ErrConnDone),
+			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO accounts (id, name, password) VALUES (?, ?, ?);`)).
 					WithArgs(account.ID, account.Name, account.Password).
@@ -65,7 +66,7 @@ func TestAccount_Create(t *testing.T) {
 			tt.setMockDB(mock)
 
 			r := database.NewDBAccountRepository(db)
-			if err := r.Create(t.Context(), tt.inputAccount); !status.Is(err, tt.expectError) {
+			if err := r.Create(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -109,7 +110,7 @@ func TestAccount_Update(t *testing.T) {
 		{
 			name:         "update error",
 			inputAccount: account,
-			expectError:  status.FromError(sql.ErrConnDone),
+			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec(regexp.QuoteMeta(`UPDATE accounts SET name = ?, password = ? WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
 					WithArgs(account.Name, account.Password, account.ID).
@@ -126,7 +127,7 @@ func TestAccount_Update(t *testing.T) {
 			tt.setMockDB(mock)
 
 			r := database.NewDBAccountRepository(db)
-			if err := r.Update(t.Context(), tt.inputAccount); !status.Is(err, tt.expectError) {
+			if err := r.Update(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -170,7 +171,7 @@ func TestAccount_Delete(t *testing.T) {
 		{
 			name:         "delete error",
 			inputAccount: account,
-			expectError:  status.FromError(sql.ErrConnDone),
+			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec(regexp.QuoteMeta(`UPDATE accounts SET deleted_at = NOW(6) WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
 					WithArgs(account.ID).
@@ -187,7 +188,7 @@ func TestAccount_Delete(t *testing.T) {
 			tt.setMockDB(mock)
 
 			r := database.NewDBAccountRepository(db)
-			if err := r.Delete(t.Context(), tt.inputAccount); !status.Is(err, tt.expectError) {
+			if err := r.Delete(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -240,7 +241,7 @@ func TestAccount_FindOneByID(t *testing.T) {
 			name:         "find error",
 			inputID:      account.ID,
 			expectResult: nil,
-			expectError:  status.FromError(sql.ErrConnDone),
+			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, password FROM accounts WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
 					WithArgs(account.ID).
@@ -258,7 +259,7 @@ func TestAccount_FindOneByID(t *testing.T) {
 
 			r := database.NewDBAccountRepository(db)
 			result, err := r.FindOneByID(t.Context(), tt.inputID)
-			if !status.Is(err, tt.expectError) {
+			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -315,7 +316,7 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 			name:         "find error",
 			inputName:    "name",
 			expectResult: nil,
-			expectError:  status.FromError(sql.ErrConnDone),
+			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, password FROM accounts WHERE name = ? LIMIT 1;`)).
 					WithArgs("name").
@@ -333,7 +334,7 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 
 			r := database.NewDBAccountRepository(db)
 			result, err := r.FindOneByNameIncludingDeleted(t.Context(), tt.inputName)
-			if !status.Is(err, tt.expectError) {
+			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
