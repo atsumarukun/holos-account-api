@@ -6,12 +6,13 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
+	"go.uber.org/mock/gomock"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
-	"github.com/google/uuid"
-	"go.uber.org/mock/gomock"
 )
 
 func TestAccount_Exists(t *testing.T) {

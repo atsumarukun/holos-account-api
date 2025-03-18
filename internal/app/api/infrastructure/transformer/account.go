@@ -1,9 +1,10 @@
 package transformer
 
 import (
+	"github.com/google/uuid"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/model"
-	"github.com/google/uuid"
 )
 
 func ToAccountModel(account *entity.Account) *model.AccountModel {

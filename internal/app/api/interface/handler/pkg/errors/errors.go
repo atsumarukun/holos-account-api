@@ -3,8 +3,9 @@ package errors
 import (
 	"net/http"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/gin-gonic/gin"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
 
 func Handle(c *gin.Context, err error) {

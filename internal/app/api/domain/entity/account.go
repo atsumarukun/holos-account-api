@@ -3,9 +3,10 @@ package entity
 import (
 	"regexp"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
 
 type Account struct {
