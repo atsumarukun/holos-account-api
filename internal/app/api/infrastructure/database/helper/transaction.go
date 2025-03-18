@@ -1,4 +1,4 @@
-package database
+package helper
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/domain"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/helper"
 )
 
 type transactionKey struct{}
@@ -15,7 +15,7 @@ type transactionObject struct {
 	db *sqlx.DB
 }
 
-func NewDBTransactionObject(db *sqlx.DB) domain.TransactionObject {
+func NewDBTransactionObject(db *sqlx.DB) helper.TransactionObject {
 	return &transactionObject{
 		db: db,
 	}
@@ -58,7 +58,7 @@ type driver interface {
 	sqlx.ExecerContext
 }
 
-func getDriver(ctx context.Context, db *sqlx.DB) driver {
+func GetDriver(ctx context.Context, db *sqlx.DB) driver {
 	if tx, ok := ctx.Value(transactionKey{}).(*sqlx.Tx); ok {
 		return tx
 	}
