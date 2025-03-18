@@ -65,8 +65,8 @@ func TestAccount_Create(t *testing.T) {
 
 			tt.setMockDB(mock)
 
-			r := database.NewDBAccountRepository(db)
-			if err := r.Create(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			repo := database.NewDBAccountRepository(db)
+			if err := repo.Create(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -126,8 +126,8 @@ func TestAccount_Update(t *testing.T) {
 
 			tt.setMockDB(mock)
 
-			r := database.NewDBAccountRepository(db)
-			if err := r.Update(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			repo := database.NewDBAccountRepository(db)
+			if err := repo.Update(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -187,8 +187,8 @@ func TestAccount_Delete(t *testing.T) {
 
 			tt.setMockDB(mock)
 
-			r := database.NewDBAccountRepository(db)
-			if err := r.Delete(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			repo := database.NewDBAccountRepository(db)
+			if err := repo.Delete(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
@@ -257,8 +257,8 @@ func TestAccount_FindOneByID(t *testing.T) {
 
 			tt.setMockDB(mock)
 
-			r := database.NewDBAccountRepository(db)
-			result, err := r.FindOneByID(t.Context(), tt.inputID)
+			repo := database.NewDBAccountRepository(db)
+			result, err := repo.FindOneByID(t.Context(), tt.inputID)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
@@ -332,8 +332,8 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 
 			tt.setMockDB(mock)
 
-			r := database.NewDBAccountRepository(db)
-			result, err := r.FindOneByNameIncludingDeleted(t.Context(), tt.inputName)
+			repo := database.NewDBAccountRepository(db)
+			result, err := repo.FindOneByNameIncludingDeleted(t.Context(), tt.inputName)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
