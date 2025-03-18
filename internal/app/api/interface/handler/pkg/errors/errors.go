@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
@@ -12,8 +11,6 @@ func Handle(c *gin.Context, err error) {
 	if err == nil {
 		return
 	}
-
-	log.Println(err)
 
 	if v, ok := err.(*status.Status); ok {
 		c.JSON(codes[v.Code()], map[string]string{"message": v.Message()})

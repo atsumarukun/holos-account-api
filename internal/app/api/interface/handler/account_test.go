@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/test/mock/usecase"
@@ -32,14 +31,14 @@ func TestAccount_Create(t *testing.T) {
 		name             string
 		requestJSON      []byte
 		expectCode       int
-		expectResponse   []byte
+		expectResponse   map[string]any
 		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
 	}{
 		{
 			name:           "success",
 			requestJSON:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
 			expectCode:     http.StatusCreated,
-			expectResponse: []byte(`{"name": "name"}`),
+			expectResponse: map[string]any{"name": "name"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -52,14 +51,14 @@ func TestAccount_Create(t *testing.T) {
 			name:             "invalid request",
 			requestJSON:      nil,
 			expectCode:       http.StatusBadRequest,
-			expectResponse:   []byte(`{"message": "bad request"}`),
+			expectResponse:   map[string]any{"message": "bad request"},
 			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
 			name:           "create error",
 			requestJSON:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
 			expectCode:     http.StatusConflict,
-			expectResponse: []byte(`{"message": "conflict"}`),
+			expectResponse: map[string]any{"message": "conflict"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -94,11 +93,11 @@ func TestAccount_Create(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response schema.AccountResponse
+			var response map[string]any
 			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 				t.Error(err)
 			}
-			if diff := cmp.Diff(&response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
 				t.Error(diff)
 			}
 		})
