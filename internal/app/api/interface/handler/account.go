@@ -1,6 +1,11 @@
 package handler
 
 import (
+	"net/http"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/builder"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -19,4 +24,20 @@ func NewAccountHandler(accountUC usecase.AccountUsecase) AccountHandler {
 	}
 }
 
-func (h *accountHandler) Create(c *gin.Context) {}
+func (h *accountHandler) Create(c *gin.Context) {
+	var req schema.CreateAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	account, err := h.accountUC.Create(ctx, req.Name, req.Password, req.ConfirmPassword)
+	if err != nil {
+		errors.Handle(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, builder.ToAccountResponse(account))
+}
