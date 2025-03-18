@@ -1,4 +1,4 @@
-package helper
+package transaction
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/helper"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
 )
 
 type transactionKey struct{}
@@ -15,7 +15,7 @@ type transactionObject struct {
 	db *sqlx.DB
 }
 
-func NewDBTransactionObject(db *sqlx.DB) helper.TransactionObject {
+func NewDBTransactionObject(db *sqlx.DB) transaction.TransactionObject {
 	return &transactionObject{
 		db: db,
 	}

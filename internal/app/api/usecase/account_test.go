@@ -10,7 +10,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
-	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/helper"
+	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/service"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -32,7 +32,7 @@ func TestAccount_Create(t *testing.T) {
 		inputConfirmPassword  string
 		expectResult          *dto.AccountDTO
 		expectError           error
-		setMockTransactionObj func(context.Context, *helper.MockTransactionObject)
+		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
 		setMockAccountRepo    func(context.Context, *repository.MockAccountRepository)
 		setMockAccountServ    func(context.Context, *service.MockAccountService)
 	}{
@@ -43,7 +43,7 @@ func TestAccount_Create(t *testing.T) {
 			inputConfirmPassword: "password",
 			expectResult:         accountDTO,
 			expectError:          nil,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *helper.MockTransactionObject) {
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
 					Transaction(ctx, gomock.Any()).
@@ -74,7 +74,7 @@ func TestAccount_Create(t *testing.T) {
 			inputConfirmPassword:  "password",
 			expectResult:          nil,
 			expectError:           status.ErrBadRequest,
-			setMockTransactionObj: func(context.Context, *helper.MockTransactionObject) {},
+			setMockTransactionObj: func(context.Context, *transaction.MockTransactionObject) {},
 			setMockAccountRepo:    func(context.Context, *repository.MockAccountRepository) {},
 			setMockAccountServ:    func(context.Context, *service.MockAccountService) {},
 		},
@@ -85,7 +85,7 @@ func TestAccount_Create(t *testing.T) {
 			inputConfirmPassword:  "",
 			expectResult:          nil,
 			expectError:           status.ErrBadRequest,
-			setMockTransactionObj: func(context.Context, *helper.MockTransactionObject) {},
+			setMockTransactionObj: func(context.Context, *transaction.MockTransactionObject) {},
 			setMockAccountRepo:    func(context.Context, *repository.MockAccountRepository) {},
 			setMockAccountServ:    func(context.Context, *service.MockAccountService) {},
 		},
@@ -96,7 +96,7 @@ func TestAccount_Create(t *testing.T) {
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          status.ErrConflict,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *helper.MockTransactionObject) {
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
 					Transaction(ctx, gomock.Any()).
@@ -121,7 +121,7 @@ func TestAccount_Create(t *testing.T) {
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *helper.MockTransactionObject) {
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
 					Transaction(ctx, gomock.Any()).
@@ -153,7 +153,7 @@ func TestAccount_Create(t *testing.T) {
 
 			ctx := t.Context()
 
-			transactionObj := helper.NewMockTransactionObject(ctrl)
+			transactionObj := transaction.NewMockTransactionObject(ctrl)
 			tt.setMockTransactionObj(ctx, transactionObj)
 
 			accountRepo := repository.NewMockAccountRepository(ctrl)

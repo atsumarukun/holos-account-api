@@ -6,7 +6,7 @@ import (
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/helper"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
@@ -17,13 +17,13 @@ type AccountUsecase interface {
 }
 
 type accountUsecase struct {
-	transactionObj helper.TransactionObject
+	transactionObj transaction.TransactionObject
 	accountRepo    repository.AccountRepository
 	accountServ    service.AccountService
 }
 
 func NewAccountUsecase(
-	transactionObj helper.TransactionObject,
+	transactionObj transaction.TransactionObject,
 	accountRepo repository.AccountRepository,
 	accountServ service.AccountService,
 ) AccountUsecase {
