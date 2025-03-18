@@ -196,26 +196,38 @@ components:
       content:
         text/plain:
           schema:
-            type: "string"
-            example: "bad request"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "bad request"
     401:
       description: "Unauthorized"
       content:
         text/plain:
           schema:
-            type: "string"
-            example: "unauthorized"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "unauthorized"
     409:
       description: "Conflict"
       content:
         text/plain:
           schema:
-            type: "string"
-            example: "conflict"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "conflict"
     500:
       description: "Internal Server Error"
       content:
         text/plain:
           schema:
-            type: "string"
-            example: "internal server error"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "internal server error"
