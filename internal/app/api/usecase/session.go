@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
@@ -10,10 +11,12 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
+	"github.com/google/uuid"
 )
 
 type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
+	Logout(context.Context, uuid.UUID) error
 }
 
 type sessionUsecase struct {
@@ -61,4 +64,8 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 	}
 
 	return mapper.ToSessionDTO(session), nil
+}
+
+func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error {
+	return errors.New("not implemented")
 }

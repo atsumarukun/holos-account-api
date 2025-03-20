@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	dto "github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -54,4 +55,18 @@ func (m *MockSessionUsecase) Login(arg0 context.Context, arg1, arg2 string) (*dt
 func (mr *MockSessionUsecaseMockRecorder) Login(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockSessionUsecase)(nil).Login), arg0, arg1, arg2)
+}
+
+// Logout mocks base method.
+func (m *MockSessionUsecase) Logout(arg0 context.Context, arg1 uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Logout", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Logout indicates an expected call of Logout.
+func (mr *MockSessionUsecaseMockRecorder) Logout(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockSessionUsecase)(nil).Logout), arg0, arg1)
 }
