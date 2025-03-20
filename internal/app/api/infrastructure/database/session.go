@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 
@@ -32,4 +33,8 @@ func (r *sessionRepository) Save(ctx context.Context, session *entity.Session) e
 		return err
 	}
 	return nil
+}
+
+func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session) error {
+	return errors.New("not implemented")
 }

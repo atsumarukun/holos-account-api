@@ -9,4 +9,5 @@ import (
 
 type SessionRepository interface {
 	Save(context.Context, *entity.Session) error
+	Delete(context.Context, *entity.Session) error
 }
