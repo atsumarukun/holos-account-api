@@ -159,35 +159,38 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 		setMockDB      func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
-			expectResult: session,
-			expectError:  nil,
+			name:           "success",
+			inputAccountID: session.AccountID,
+			expectResult:   session,
+			expectError:    nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
-					WithArgs(session.ID).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE account_id = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "account_id", "token", "expires_at"}).AddRow(session.ID, session.AccountID, session.Token, session.ExpiresAt)).
 					WillReturnError(nil)
 			},
 		},
 		{
-			name:         "not found",
-			expectResult: nil,
-			expectError:  status.ErrInternal,
+			name:           "not found",
+			inputAccountID: session.AccountID,
+			expectResult:   nil,
+			expectError:    nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
-					WithArgs(session.ID).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE account_id = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "account_id", "token", "expires_at"})).
 					WillReturnError(nil)
 			},
 		},
 
 		{
-			name:         "find error",
-			expectResult: session,
-			expectError:  sql.ErrConnDone,
+			name:           "find error",
+			inputAccountID: session.AccountID,
+			expectResult:   nil,
+			expectError:    sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE id = ? AND deleted_at IS NULL LIMIT 1;`)).
-					WithArgs(session.ID).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, account_id, token, expires_at FROM sessions WHERE account_id = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "account_id", "token", "expires_at"})).
 					WillReturnError(sql.ErrConnDone)
 			},
