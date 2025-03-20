@@ -18,8 +18,8 @@
 
 | パス | メソッド | 備考 |
 | --- | --- | --- |
-| /signin | POST | ログイン |
-| /signout | DELETE | ログイン |
+| /login | POST | ログイン |
+| /logout | DELETE | ログイン |
 | /authorization | GET | 認可 |
 
 ## シーケンス
@@ -108,3 +108,4 @@ sequenceDiagram
 | --- | --- | --- |
 | 2025/03/16 | @atsumarukun | 初版 |
 | 2025/03/20 | @atsumarukun | テーブル構造を変更 |
+| 2025/03/20 | @atsumarukun | エンドポイントの名称を変更 |
