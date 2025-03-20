@@ -73,6 +73,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			c.Request.Header.Add("Authorization", tt.authorizationHeader)
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
@@ -83,9 +84,14 @@ func TestAuthentication_Authenticate(t *testing.T) {
 			mw := middleware.NewAuthenticationMiddleware(sessionUC)
 			mw.Authenticate(c)
 
-			result, _ := c.Get("accountID")
-			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
-				t.Error(diff)
+			accountID, exists := c.Get("accountID")
+			if exists && tt.expectResult == uuid.Nil {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectResult, accountID)
+			} else {
+				result, _ := accountID.(uuid.UUID)
+				if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+					t.Error(diff)
+				}
 			}
 		})
 	}
