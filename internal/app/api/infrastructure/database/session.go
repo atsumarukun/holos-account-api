@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/pkg/transaction"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/model"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/transformer"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
@@ -49,5 +51,13 @@ func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session)
 }
 
 func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uuid.UUID) (*entity.Session, error) {
-	return nil, errors.New("not implemented")
+	driver := transaction.GetDriver(ctx, r.db)
+	var model model.SessionModel
+	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE id = ?;`, accountID).StructScan(&model); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return transformer.ToSessionEntity(&model), nil
 }
