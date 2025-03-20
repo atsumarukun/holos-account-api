@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 
 	"github.com/jmoiron/sqlx"
 
@@ -36,5 +35,13 @@ func (r *sessionRepository) Save(ctx context.Context, session *entity.Session) e
 }
 
 func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session) error {
-	return errors.New("not implemented")
+	if session == nil {
+		return status.ErrInternal
+	}
+	driver := transaction.GetDriver(ctx, r.db)
+	model := transformer.ToSessionModel(session)
+	if _, err := driver.ExecContext(ctx, `DELETE FROM sessions WHERE account_id = ?;`, model.AccountID); err != nil {
+		return err
+	}
+	return nil
 }
