@@ -63,5 +63,13 @@ func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uu
 }
 
 func (r *sessionRepository) FindOneByToken(ctx context.Context, token string) (*entity.Session, error) {
-	return nil, errors.New("not implemented")
+	driver := transaction.GetDriver(ctx, r.db)
+	var model model.SessionModel
+	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`, token).StructScan(&model); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return transformer.ToSessionEntity(&model), nil
 }
