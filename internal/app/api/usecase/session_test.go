@@ -73,7 +73,7 @@ func TestSession_Login(t *testing.T) {
 			},
 		},
 		{
-			name:             "account notfound",
+			name:             "account not found",
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     nil,
@@ -121,7 +121,7 @@ func TestSession_Login(t *testing.T) {
 			},
 		},
 		{
-			name:             "account find error",
+			name:             "find account error",
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     nil,
@@ -202,6 +202,136 @@ func TestSession_Login(t *testing.T) {
 			}
 			if diff := cmp.Diff(result, tt.expectResult, opts...); diff != "" {
 				t.Error(diff)
+			}
+		})
+	}
+}
+
+func TestSession_Logout(t *testing.T) {
+	session := &entity.Session{
+		AccountID: uuid.New(),
+		Token:     "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+		ExpiresAt: time.Now().Add(time.Hour * 24 * 7),
+	}
+
+	tests := []struct {
+		name                  string
+		inputAccountID        uuid.UUID
+		expectError           error
+		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
+		setMockSessionRepo    func(context.Context, *repository.MockSessionRepository)
+	}{
+		{
+			name:           "success",
+			inputAccountID: session.AccountID,
+			expectError:    nil,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+				sessionRepo.
+					EXPECT().
+					FindOneByAccountID(ctx, gomock.Any()).
+					Return(session, nil).
+					Times(1)
+				sessionRepo.
+					EXPECT().
+					Delete(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+		},
+		{
+			name:           "session not found",
+			inputAccountID: session.AccountID,
+			expectError:    status.ErrUnauthorized,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+				sessionRepo.
+					EXPECT().
+					FindOneByAccountID(ctx, gomock.Any()).
+					Return(nil, nil).
+					Times(1)
+			},
+		},
+		{
+			name:           "find session error",
+			inputAccountID: session.AccountID,
+			expectError:    sql.ErrConnDone,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+				sessionRepo.
+					EXPECT().
+					FindOneByAccountID(ctx, gomock.Any()).
+					Return(nil, sql.ErrConnDone).
+					Times(1)
+			},
+		},
+		{
+			name:           "delete session error",
+			inputAccountID: session.AccountID,
+			expectError:    sql.ErrConnDone,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+				sessionRepo.
+					EXPECT().
+					FindOneByAccountID(ctx, gomock.Any()).
+					Return(session, nil).
+					Times(1)
+				sessionRepo.
+					EXPECT().
+					Delete(ctx, gomock.Any()).
+					Return(sql.ErrConnDone).
+					Times(1)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			ctx := t.Context()
+
+			transactionObj := transaction.NewMockTransactionObject(ctrl)
+			tt.setMockTransactionObj(ctx, transactionObj)
+
+			sessionRepo := repository.NewMockSessionRepository(ctrl)
+			tt.setMockSessionRepo(ctx, sessionRepo)
+
+			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, nil)
+			if err := uc.Logout(ctx, tt.inputAccountID); !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 		})
 	}
