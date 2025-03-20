@@ -216,3 +216,79 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 		})
 	}
 }
+
+func TestSession_FindOneByToken(t *testing.T) {
+	session := &entity.Session{
+		AccountID: uuid.New(),
+		Token:     "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+		ExpiresAt: time.Now().Add(time.Hour * 24 * 7),
+	}
+
+	tests := []struct {
+		name         string
+		inputToken   string
+		expectResult *entity.Session
+		expectError  error
+		setMockDB    func(mock sqlmock.Sqlmock)
+	}{
+		{
+			name:         "success",
+			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResult: session,
+			expectError:  nil,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
+					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"}).AddRow(session.AccountID, session.Token, session.ExpiresAt)).
+					WillReturnError(nil)
+			},
+		},
+		{
+			name:         "not found",
+			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResult: nil,
+			expectError:  nil,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
+					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
+					WillReturnError(nil)
+			},
+		},
+
+		{
+			name:         "find error",
+			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResult: nil,
+			expectError:  sql.ErrConnDone,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
+					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
+					WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock := mockDatabase.NewMockDatabase(t)
+			defer db.Close()
+
+			tt.setMockDB(mock)
+
+			repo := database.NewDBSessionRepository(db)
+			result, err := repo.FindOneByToken(t.Context(), tt.inputToken)
+			if !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+				t.Error(diff)
+			}
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
