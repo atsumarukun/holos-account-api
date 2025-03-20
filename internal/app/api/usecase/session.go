@@ -3,7 +3,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
@@ -82,5 +81,29 @@ func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error 
 }
 
 func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.AccountDTO, error) {
-	return nil, errors.New("not implemented")
+	var account *entity.Account
+
+	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		session, err := u.sessionRepo.FindOneByToken(ctx, token)
+		if err != nil {
+			return err
+		}
+		if session == nil {
+			return status.ErrUnauthorized
+		}
+
+		account, err = u.accountRepo.FindOneByID(ctx, session.AccountID)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return mapper.ToAccountDTO(account), nil
 }
