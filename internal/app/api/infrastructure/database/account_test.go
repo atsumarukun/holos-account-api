@@ -274,6 +274,81 @@ func TestAccount_FindOneByID(t *testing.T) {
 	}
 }
 
+func TestAccount_FindOneByName(t *testing.T) {
+	account := &entity.Account{
+		ID:       uuid.New(),
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+
+	tests := []struct {
+		name         string
+		inputName    string
+		expectResult *entity.Account
+		expectError  error
+		setMockDB    func(mock sqlmock.Sqlmock)
+	}{
+		{
+			name:         "success",
+			inputName:    "name",
+			expectResult: account,
+			expectError:  nil,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs("name").
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "password"}).AddRow(account.ID, account.Name, account.Password)).
+					WillReturnError(nil)
+			},
+		},
+		{
+			name:         "not found",
+			inputName:    "name",
+			expectResult: nil,
+			expectError:  nil,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs("name").
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "password"})).
+					WillReturnError(nil)
+			},
+		},
+		{
+			name:         "find error",
+			inputName:    "name",
+			expectResult: nil,
+			expectError:  sql.ErrConnDone,
+			setMockDB: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`)).
+					WithArgs("name").
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "password"})).
+					WillReturnError(sql.ErrConnDone)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock := mockDatabase.NewMockDatabase(t)
+			defer db.Close()
+
+			tt.setMockDB(mock)
+
+			repo := database.NewDBAccountRepository(db)
+			result, err := repo.FindOneByName(t.Context(), tt.inputName)
+			if !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+				t.Error(diff)
+			}
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
+
 func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 	account := &entity.Account{
 		ID:       uuid.New(),

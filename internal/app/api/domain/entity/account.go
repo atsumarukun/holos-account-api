@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/google/uuid"
@@ -69,6 +70,16 @@ func (a *Account) SetPassword(password, confirmPassword string) error {
 		return err
 	}
 	a.Password = string(hashed)
+	return nil
+}
+
+func (a *Account) ComparePassword(password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(a.Password), []byte(password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return status.ErrUnauthorized
+		}
+		return err
+	}
 	return nil
 }
 

@@ -112,6 +112,7 @@ func TestAccount_SetPassword(t *testing.T) {
 		{name: "8 characters", inputPassword: strings.Repeat("a", 8), inputConfirmPassword: strings.Repeat("a", 8), expectError: nil},
 		{name: "72 characters", inputPassword: strings.Repeat("a", 72), inputConfirmPassword: strings.Repeat("a", 72), expectError: nil},
 		{name: "73 characters", inputPassword: strings.Repeat("a", 73), inputConfirmPassword: strings.Repeat("a", 73), expectError: status.ErrBadRequest},
+		{name: "dose not matched", inputPassword: "password", inputConfirmPassword: "PASSWORD", expectError: status.ErrBadRequest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,6 +123,38 @@ func TestAccount_SetPassword(t *testing.T) {
 				if account.Password == tt.inputPassword {
 					t.Error("password is not hashed")
 				}
+			}
+		})
+	}
+}
+
+func TestAccount_ComparePassword(t *testing.T) {
+	account := &entity.Account{
+		ID:       uuid.New(),
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+
+	tests := []struct {
+		name          string
+		inputPassword string
+		expectError   error
+	}{
+		{
+			name:          "success",
+			inputPassword: "password",
+			expectError:   nil,
+		},
+		{
+			name:          "faild",
+			inputPassword: "PASSWORD",
+			expectError:   status.ErrUnauthorized,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := account.ComparePassword(tt.inputPassword); !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 		})
 	}

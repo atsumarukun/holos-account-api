@@ -47,7 +47,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         204:
@@ -69,7 +69,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_name"
@@ -97,7 +97,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_password"
@@ -106,6 +106,20 @@ paths:
           $ref: "#/components/responses/update_account_password"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /login:
+    post:
+      summary: "ログイン"
+      tags:
+        - "session"
+      requestBody:
+        $ref: "#/components/requestBodies/login"
+      responses:
+        200:
+          $ref: "#/components/responses/login"
         401:
           $ref: "#/components/responses/401"
         500:
@@ -137,6 +151,24 @@ components:
         - "name"
         - "password"
         - "confirm_password"
+    credential:
+      type: "object"
+      properties:
+        account_name:
+          type: "string"
+          example: "name"
+          writeOnly: true
+        password:
+          type: "string"
+          example: "password"
+          writeOnly: true
+    session:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+          example: "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          readOnly: true
 
   requestBodies:
     create_account:
@@ -169,6 +201,12 @@ components:
                 properties:
                   name:
                     readOnly: true
+    login:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/credential"
 
   responses:
     create_account:
@@ -189,6 +227,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/account"
+    login:
+      description: "Success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/session"
     204:
       description: "Success"
     400:

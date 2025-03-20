@@ -85,6 +85,21 @@ func (mr *MockAccountRepositoryMockRecorder) FindOneByID(arg0, arg1 any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByID", reflect.TypeOf((*MockAccountRepository)(nil).FindOneByID), arg0, arg1)
 }
 
+// FindOneByName mocks base method.
+func (m *MockAccountRepository) FindOneByName(arg0 context.Context, arg1 string) (*entity.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOneByName", arg0, arg1)
+	ret0, _ := ret[0].(*entity.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByName indicates an expected call of FindOneByName.
+func (mr *MockAccountRepositoryMockRecorder) FindOneByName(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByName", reflect.TypeOf((*MockAccountRepository)(nil).FindOneByName), arg0, arg1)
+}
+
 // FindOneByNameIncludingDeleted mocks base method.
 func (m *MockAccountRepository) FindOneByNameIncludingDeleted(arg0 context.Context, arg1 string) (*entity.Account, error) {
 	m.ctrl.T.Helper()
