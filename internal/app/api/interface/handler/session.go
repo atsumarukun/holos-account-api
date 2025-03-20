@@ -15,6 +15,7 @@ import (
 
 type SessionHandler interface {
 	Login(*gin.Context)
+	Logout(*gin.Context)
 }
 
 type sessionHandler struct {
@@ -46,3 +47,5 @@ func (h *sessionHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, builder.ToSessionResponse(session))
 }
+
+func (h *sessionHandler) Logout(c *gin.Context) {}
