@@ -57,7 +57,6 @@ sequenceDiagram
 
 | キー | 型 | 備考 |
 | --- | --- | --- |
-| id | uuid | |
 | account_id | uuid | |
 | token | string | 32文字 |
 | expires_at | time | 1週間 |
@@ -66,13 +65,9 @@ sequenceDiagram
 
 | カラム名 | 型 | キー | null許容 | 備考 |
 | --- | --- | --- | :---: | --- |
-| id | char(36) | PK | | ID |
-| account_id | char(36) | FK, UQ | | アカウントID |
+| account_id | char(36) | PK, FK, UQ | | アカウントID |
 | token | char(32) | UQ | | トークン |
 | expires_at | datetime(6) | | | 有効期限 |
-| created_at | datetime(6) | | | 作成日時 |
-| updated_at | datetime(6) | | | 更新日時 |
-| deleter_at | datetime(6) | | * | 削除日時 |
 
 ## テスト項目
 

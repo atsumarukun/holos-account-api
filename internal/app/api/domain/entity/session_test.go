@@ -36,9 +36,6 @@ func TestNewSession(t *testing.T) {
 				if session == nil {
 					t.Error("session is nil")
 				} else {
-					if session.ID == uuid.Nil {
-						t.Error("id is not set")
-					}
 					if session.AccountID == uuid.Nil {
 						t.Error("account_id is not set")
 					}
@@ -56,7 +53,6 @@ func TestNewSession(t *testing.T) {
 
 func TestSession_GenerateToken(t *testing.T) {
 	session := &entity.Session{
-		ID:        uuid.New(),
 		AccountID: uuid.New(),
 		Token:     "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 		ExpiresAt: time.Now().Add(time.Hour * 24 * 7),

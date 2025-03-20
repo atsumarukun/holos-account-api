@@ -10,7 +10,6 @@ import (
 )
 
 type Session struct {
-	ID        uuid.UUID
 	AccountID uuid.UUID
 	Token     string
 	ExpiresAt time.Time
@@ -19,9 +18,6 @@ type Session struct {
 func NewSession(account *Account) (*Session, error) {
 	var session Session
 
-	if err := session.generateID(); err != nil {
-		return nil, err
-	}
 	if err := session.setAccount(account); err != nil {
 		return nil, err
 	}
@@ -32,9 +28,8 @@ func NewSession(account *Account) (*Session, error) {
 	return &session, nil
 }
 
-func RestoreSession(id uuid.UUID, accountID uuid.UUID, token string, expiresAt time.Time) *Session {
+func RestoreSession(accountID uuid.UUID, token string, expiresAt time.Time) *Session {
 	return &Session{
-		ID:        id,
 		AccountID: accountID,
 		Token:     token,
 		ExpiresAt: expiresAt,
@@ -52,15 +47,6 @@ func (s *Session) GenerateToken() error {
 	}
 	s.Token = token
 	s.ExpiresAt = time.Now().Add(time.Hour * 24 * 7)
-	return nil
-}
-
-func (s *Session) generateID() error {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-	s.ID = id
 	return nil
 }
 
