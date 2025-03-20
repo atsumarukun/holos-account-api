@@ -3,7 +3,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
@@ -67,5 +66,15 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 }
 
 func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error {
-	return errors.New("not implemented")
+	return u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		session, err := u.sessionRepo.FindOneByAccountID(ctx, accountID)
+		if err != nil {
+			return err
+		}
+		if session == nil {
+			return status.ErrUnauthorized
+		}
+
+		return u.sessionRepo.Delete(ctx, session)
+	})
 }
