@@ -53,7 +53,7 @@ func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session)
 func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uuid.UUID) (*entity.Session, error) {
 	driver := transaction.GetDriver(ctx, r.db)
 	var model model.SessionModel
-	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE id = ?;`, accountID).StructScan(&model); err != nil {
+	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`, accountID).StructScan(&model); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

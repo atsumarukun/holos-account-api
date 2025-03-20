@@ -161,7 +161,7 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 			expectResult:   session,
 			expectError:    nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE id = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`)).
 					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"}).AddRow(session.AccountID, session.Token, session.ExpiresAt)).
 					WillReturnError(nil)
@@ -173,7 +173,7 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 			expectResult:   nil,
 			expectError:    nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE id = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`)).
 					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
 					WillReturnError(nil)
@@ -186,7 +186,7 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 			expectResult:   nil,
 			expectError:    sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE id = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`)).
 					WithArgs(session.AccountID).
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
 					WillReturnError(sql.ErrConnDone)
