@@ -5,8 +5,9 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/google/uuid"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
 
 type Session struct {

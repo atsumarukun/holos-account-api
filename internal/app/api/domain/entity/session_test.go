@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
-	"github.com/google/uuid"
 )
 
 func TestNewSession(t *testing.T) {
