@@ -126,3 +126,35 @@ func TestAccount_SetPassword(t *testing.T) {
 		})
 	}
 }
+
+func TestAccount_ComparePassword(t *testing.T) {
+	account := &entity.Account{
+		ID:       uuid.New(),
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+
+	tests := []struct {
+		name          string
+		inputPassword string
+		expectError   error
+	}{
+		{
+			name:          "success",
+			inputPassword: "password",
+			expectError:   nil,
+		},
+		{
+			name:          "faild",
+			inputPassword: "PASSWORD",
+			expectError:   status.ErrUnauthorized,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := account.ComparePassword(tt.inputPassword); !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+		})
+	}
+}
