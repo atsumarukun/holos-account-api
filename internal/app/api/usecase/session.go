@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
@@ -16,6 +17,7 @@ import (
 type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
 	Logout(context.Context, uuid.UUID) error
+	Authorize(context.Context, string) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -77,4 +79,8 @@ func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error 
 
 		return u.sessionRepo.Delete(ctx, session)
 	})
+}
+
+func (u *sessionUsecase) Authorize(ctx context.Context, token string) (*dto.AccountDTO, error) {
+	return nil, errors.New("not implemented")
 }
