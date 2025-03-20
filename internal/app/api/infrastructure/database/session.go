@@ -61,3 +61,7 @@ func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uu
 	}
 	return transformer.ToSessionEntity(&model), nil
 }
+
+func (r *sessionRepository) FindOneByToken(ctx context.Context, token string) (*entity.Session, error) {
+	return nil, errors.New("not implemented")
+}
