@@ -14,5 +14,6 @@ type AccountRepository interface {
 	Update(context.Context, *entity.Account) error
 	Delete(context.Context, *entity.Account) error
 	FindOneByID(context.Context, uuid.UUID) (*entity.Account, error)
+	FindOneByName(context.Context, string) (*entity.Account, error)
 	FindOneByNameIncludingDeleted(context.Context, string) (*entity.Account, error)
 }

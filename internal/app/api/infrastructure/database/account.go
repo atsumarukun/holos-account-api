@@ -74,6 +74,18 @@ func (r *accountRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*ent
 	return transformer.ToAccountEntity(&model)
 }
 
+func (r *accountRepository) FindOneByName(ctx context.Context, name string) (*entity.Account, error) {
+	driver := transaction.GetDriver(ctx, r.db)
+	var model model.AccountModel
+	if err := driver.QueryRowxContext(ctx, `SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`, name).StructScan(&model); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return transformer.ToAccountEntity(&model)
+}
+
 func (r *accountRepository) FindOneByNameIncludingDeleted(ctx context.Context, name string) (*entity.Account, error) {
 	driver := transaction.GetDriver(ctx, r.db)
 	var model model.AccountModel
