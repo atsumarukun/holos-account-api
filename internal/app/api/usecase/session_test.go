@@ -120,7 +120,7 @@ func TestSession_Login(t *testing.T) {
 			},
 		},
 		{
-			name:             "account fin error",
+			name:             "account find error",
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     nil,

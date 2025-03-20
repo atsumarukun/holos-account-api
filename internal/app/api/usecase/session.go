@@ -3,11 +3,13 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
 )
 
 type SessionUsecase interface {
@@ -33,5 +35,30 @@ func NewSessionUsecase(
 }
 
 func (u *sessionUsecase) Login(ctx context.Context, accountName, password string) (*dto.SessionDTO, error) {
-	return nil, errors.New("not implemented")
+	var session *entity.Session
+
+	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		account, err := u.accountRepo.FindOneByName(ctx, accountName)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		if err := account.ComparePassword(password); err != nil {
+			return err
+		}
+
+		session, err = entity.NewSession(account)
+		if err != nil {
+			return err
+		}
+
+		return u.sessionRepo.Save(ctx, session)
+	}); err != nil {
+		return nil, err
+	}
+
+	return mapper.ToSessionDTO(session), nil
 }
