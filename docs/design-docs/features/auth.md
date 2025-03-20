@@ -30,8 +30,9 @@ sequenceDiagram
   participant server as サーバー
 
   client ->>+ server: ① ログイン
-  server -->>- client: session_id
-  client ->>+ server: ② ①のsession_idを用いて認可
+  server -->>- client: token
+  client ->>+ server: ② ①のtokenを用いて認可
+  Note over client, server: AuthorizationHeader: Session ${TOKEN}
   server -->>- client: account_id
 ```
 
@@ -45,27 +46,29 @@ sequenceDiagram
 
 ## 仕様
 
-- ログイン時にランダムな文字列のセッションIDを発行する
-  - セッションIDは32文字
-  - セッションIDの有効期限は1週間
-- セッションIDを削除することでログアウトを行う
-- セッションIDを用いて認可を行う
+- ログイン時にランダムな文字列のトークンを発行する
+  - トークンは32文字
+  - トークンの有効期限は1週間
+- トークンを削除することでログアウトを行う
+- トークンを用いて認可を行う
   - アカウントIDを返却する
 
 ## ドメインオブジェクト
 
 | キー | 型 | 備考 |
 | --- | --- | --- |
-| session_id | string | 32文字 |
+| id | uuid | |
 | account_id | uuid | |
+| token | string | 32文字 |
 | expires_at | time | 1週間 |
 
 ## テーブル
 
 | カラム名 | 型 | キー | null許容 | 備考 |
 | --- | --- | --- | :---: | --- |
-| session_id | char(32) | PK | | セッションID |
-| account_id | char(36) | FK | | アカウントID |
+| id | char(36) | PK | | ID |
+| account_id | char(36) | FK, UQ | | アカウントID |
+| token | char(32) | UQ | | トークン |
 | expires_at | datetime(6) | | | 有効期限 |
 | created_at | datetime(6) | | | 作成日時 |
 | updated_at | datetime(6) | | | 更新日時 |
@@ -85,15 +88,15 @@ sequenceDiagram
 
 | ステータス | テストケース | 入力値 |
 | --- | --- | --- |
-| 正常系 | ログアウト成功 | session_id |
-| 異常系 | セッションが存在しない | session_id |
+| 正常系 | ログアウト成功 | token |
+| 異常系 | セッションが存在しない | token |
 
 ### 認可
 
 | ステータス | テストケース | 入力値 |
 | --- | --- | --- |
-| 正常系 | 認可成功 | session_id |
-| 異常系 | セッションが存在しない | session_id |
+| 正常系 | 認可成功 | token |
+| 異常系 | セッションが存在しない | token |
 
 # その他の手法
 
@@ -104,3 +107,4 @@ sequenceDiagram
 | 変更日 | 変更者 | 変更内容 |
 | --- | --- | --- |
 | 2025/03/16 | @atsumarukun | 初版 |
+| 2025/03/20 | @atsumarukun | テーブル構造を変更 |
