@@ -114,7 +114,7 @@ paths:
     post:
       summary: "ログイン"
       tags:
-        - "auth"
+        - "session"
       requestBody:
         $ref: "#/components/requestBodies/login"
       responses:
