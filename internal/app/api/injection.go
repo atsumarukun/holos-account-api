@@ -13,6 +13,7 @@ import (
 var (
 	healthHdl  handler.HealthHandler
 	accountHdl handler.AccountHandler
+	sessionHdl handler.SessionHandler
 )
 
 func inject(db *sqlx.DB) {
@@ -24,4 +25,8 @@ func inject(db *sqlx.DB) {
 	accountServ := service.NewAccountService(accountRepo)
 	accountUC := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
 	accountHdl = handler.NewAccountHandler(accountUC)
+
+	sessionRepo := database.NewDBSessionRepository(db)
+	sessionUC := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
+	sessionHdl = handler.NewSessionHandler(sessionUC)
 }
