@@ -47,7 +47,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         204:
@@ -69,7 +69,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_name"
@@ -97,7 +97,7 @@ paths:
           schema:
             type: "string"
           required: true
-          description: "セッションID"
+          description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_password"
