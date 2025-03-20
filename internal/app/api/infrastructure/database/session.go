@@ -2,7 +2,9 @@ package database
 
 import (
 	"context"
+	"errors"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
@@ -44,4 +46,8 @@ func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session)
 		return err
 	}
 	return nil
+}
+
+func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uuid.UUID) (*entity.Session, error) {
+	return nil, errors.New("not implemented")
 }
