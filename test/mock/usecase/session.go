@@ -42,19 +42,19 @@ func (m *MockSessionUsecase) EXPECT() *MockSessionUsecaseMockRecorder {
 	return m.recorder
 }
 
-// Authorize mocks base method.
-func (m *MockSessionUsecase) Authorize(arg0 context.Context, arg1 string) (*dto.AccountDTO, error) {
+// Authenticate mocks base method.
+func (m *MockSessionUsecase) Authenticate(arg0 context.Context, arg1 string) (*dto.AccountDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authorize", arg0, arg1)
+	ret := m.ctrl.Call(m, "Authenticate", arg0, arg1)
 	ret0, _ := ret[0].(*dto.AccountDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Authorize indicates an expected call of Authorize.
-func (mr *MockSessionUsecaseMockRecorder) Authorize(arg0, arg1 any) *gomock.Call {
+// Authenticate indicates an expected call of Authenticate.
+func (mr *MockSessionUsecaseMockRecorder) Authenticate(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockSessionUsecase)(nil).Authorize), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockSessionUsecase)(nil).Authenticate), arg0, arg1)
 }
 
 // Login mocks base method.

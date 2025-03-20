@@ -17,7 +17,7 @@ import (
 type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
 	Logout(context.Context, uuid.UUID) error
-	Authorize(context.Context, string) (*dto.AccountDTO, error)
+	Authenticate(context.Context, string) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -81,6 +81,6 @@ func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error 
 	})
 }
 
-func (u *sessionUsecase) Authorize(ctx context.Context, token string) (*dto.AccountDTO, error) {
+func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.AccountDTO, error) {
 	return nil, errors.New("not implemented")
 }
