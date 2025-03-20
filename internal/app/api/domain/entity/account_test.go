@@ -112,6 +112,7 @@ func TestAccount_SetPassword(t *testing.T) {
 		{name: "8 characters", inputPassword: strings.Repeat("a", 8), inputConfirmPassword: strings.Repeat("a", 8), expectError: nil},
 		{name: "72 characters", inputPassword: strings.Repeat("a", 72), inputConfirmPassword: strings.Repeat("a", 72), expectError: nil},
 		{name: "73 characters", inputPassword: strings.Repeat("a", 73), inputConfirmPassword: strings.Repeat("a", 73), expectError: status.ErrBadRequest},
+		{name: "dose not matched", inputPassword: "password", inputConfirmPassword: "PASSWORD", expectError: status.ErrBadRequest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
