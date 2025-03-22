@@ -70,6 +70,10 @@ func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, name stri
 			return status.ErrUnauthorized
 		}
 
+		if account.Name == name {
+			return nil
+		}
+
 		if err := account.SetName(name); err != nil {
 			return err
 		}
