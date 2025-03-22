@@ -7,13 +7,15 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/middleware"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 )
 
 var (
-	healthHdl  handler.HealthHandler
-	accountHdl handler.AccountHandler
-	sessionHdl handler.SessionHandler
+	healthHdl        handler.HealthHandler
+	accountHdl       handler.AccountHandler
+	sessionHdl       handler.SessionHandler
+	authenticationMW middleware.AuthenticationMiddleware
 )
 
 func inject(db *sqlx.DB) {
@@ -29,4 +31,6 @@ func inject(db *sqlx.DB) {
 	sessionRepo := database.NewDBSessionRepository(db)
 	sessionUC := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 	sessionHdl = handler.NewSessionHandler(sessionUC)
+
+	authenticationMW = middleware.NewAuthenticationMiddleware(sessionUC)
 }
