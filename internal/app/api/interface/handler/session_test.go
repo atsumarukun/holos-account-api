@@ -200,8 +200,8 @@ func TestSession_Authorize(t *testing.T) {
 		{
 			name:           "success",
 			isSetAccountID: true,
-			expectResponse: map[string]any{"id": accountDTO.ID, "name": "name"},
-			expectCode:     http.StatusNoContent,
+			expectResponse: map[string]any{"id": accountDTO.ID.String(), "name": "name"},
+			expectCode:     http.StatusOK,
 			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
@@ -213,13 +213,14 @@ func TestSession_Authorize(t *testing.T) {
 		{
 			name:             "account id not found",
 			isSetAccountID:   false,
-			expectResponse:   nil,
+			expectResponse:   map[string]any{"message": "internal server error"},
 			expectCode:       http.StatusInternalServerError,
 			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
 		},
 		{
 			name:           "authorize faild",
 			isSetAccountID: true,
+			expectResponse: map[string]any{"message": "unauthorized"},
 			expectCode:     http.StatusUnauthorized,
 			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.

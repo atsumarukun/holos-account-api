@@ -87,5 +87,5 @@ func (h *sessionHandler) Authorize(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, builder.ToAauthorizationResponse(account))
+	c.JSON(http.StatusOK, builder.ToAauthorizationResponse(account))
 }
