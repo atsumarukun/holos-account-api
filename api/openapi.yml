@@ -49,6 +49,8 @@ paths:
           required: true
           description: "セッショントークン"
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      requestBody:
+        $ref: "#/components/requestBodies/delete_account"
       responses:
         204:
           $ref: "#/components/responses/204"
@@ -248,6 +250,19 @@ components:
               - type: "object"
                 properties:
                   name:
+                    readOnly: true
+    delete_account:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  name:
+                    readOnly: true
+                  confirm_password:
                     readOnly: true
     login:
       required: true
