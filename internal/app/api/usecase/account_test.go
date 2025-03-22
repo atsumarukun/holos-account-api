@@ -634,14 +634,16 @@ func TestAccount_Delete(t *testing.T) {
 	tests := []struct {
 		name                  string
 		inputID               uuid.UUID
+		inputPassword         string
 		expectError           error
 		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
 		setMockAccountRepo    func(context.Context, *repository.MockAccountRepository)
 	}{
 		{
-			name:        "success",
-			inputID:     account.ID,
-			expectError: nil,
+			name:          "success",
+			inputID:       account.ID,
+			inputPassword: "password",
+			expectError:   nil,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -665,9 +667,32 @@ func TestAccount_Delete(t *testing.T) {
 			},
 		},
 		{
-			name:        "find error",
-			inputID:     account.ID,
-			expectError: sql.ErrConnDone,
+			name:          "authentication failed",
+			inputID:       account.ID,
+			inputPassword: "PASSWORD",
+			expectError:   status.ErrUnauthorized,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+		},
+		{
+			name:          "find error",
+			inputID:       account.ID,
+			inputPassword: "password",
+			expectError:   sql.ErrConnDone,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -686,9 +711,10 @@ func TestAccount_Delete(t *testing.T) {
 			},
 		},
 		{
-			name:        "delete error",
-			inputID:     account.ID,
-			expectError: sql.ErrConnDone,
+			name:          "delete error",
+			inputID:       account.ID,
+			inputPassword: "password",
+			expectError:   sql.ErrConnDone,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -726,7 +752,7 @@ func TestAccount_Delete(t *testing.T) {
 			tt.setMockAccountRepo(ctx, accountRepo)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
-			if err := uc.Delete(ctx, tt.inputID); !errors.Is(err, tt.expectError) {
+			if err := uc.Delete(ctx, tt.inputID, tt.inputPassword); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 		})

@@ -318,6 +318,7 @@ func TestAccount_Delete(t *testing.T) {
 
 	tests := []struct {
 		name             string
+		requestJSON      []byte
 		isSetAccountID   bool
 		expectCode       int
 		expectResponse   map[string]any
@@ -325,19 +326,29 @@ func TestAccount_Delete(t *testing.T) {
 	}{
 		{
 			name:           "success",
+			requestJSON:    []byte(`{"password": "password"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusNoContent,
 			expectResponse: nil,
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					Delete(ctx, gomock.Any()).
+					Delete(ctx, gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
 		},
 		{
+			name:             "invalid request",
+			requestJSON:      nil,
+			isSetAccountID:   true,
+			expectCode:       http.StatusBadRequest,
+			expectResponse:   map[string]any{"message": "bad request"},
+			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+		},
+		{
 			name:             "account id not found",
+			requestJSON:      []byte(`{"password": "password"}`),
 			isSetAccountID:   false,
 			expectCode:       http.StatusInternalServerError,
 			expectResponse:   map[string]any{"message": "internal server error"},
@@ -345,13 +356,14 @@ func TestAccount_Delete(t *testing.T) {
 		},
 		{
 			name:           "delete error",
+			requestJSON:    []byte(`{"password": "password"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusUnauthorized,
 			expectResponse: map[string]any{"message": "unauthorized"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					Delete(ctx, gomock.Any()).
+					Delete(ctx, gomock.Any(), gomock.Any()).
 					Return(status.ErrUnauthorized).
 					Times(1)
 			},
@@ -364,7 +376,7 @@ func TestAccount_Delete(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/accounts", http.NoBody)
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/accounts", bytes.NewBuffer(tt.requestJSON))
 			if err != nil {
 				t.Error(err)
 			}
