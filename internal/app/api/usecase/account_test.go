@@ -194,6 +194,7 @@ func TestAccount_UpdateName(t *testing.T) {
 
 	tests := []struct {
 		name                  string
+		inputID               uuid.UUID
 		inputName             string
 		expectResult          *dto.AccountDTO
 		expectError           error
@@ -203,6 +204,7 @@ func TestAccount_UpdateName(t *testing.T) {
 	}{
 		{
 			name:         "success",
+			inputID:      account.ID,
 			inputName:    "name",
 			expectResult: accountDTO,
 			expectError:  nil,
@@ -237,6 +239,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:         "invalid name",
+			inputID:      account.ID,
 			inputName:    "",
 			expectResult: nil,
 			expectError:  status.ErrBadRequest,
@@ -260,6 +263,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:         "account already exists",
+			inputID:      account.ID,
 			inputName:    "name",
 			expectResult: nil,
 			expectError:  status.ErrConflict,
@@ -289,6 +293,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:         "find error",
+			inputID:      account.ID,
 			inputName:    "name",
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
@@ -308,16 +313,11 @@ func TestAccount_UpdateName(t *testing.T) {
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
-			setMockAccountServ: func(ctx context.Context, accountServ *service.MockAccountService) {
-				accountServ.
-					EXPECT().
-					Exists(ctx, gomock.Any()).
-					Return(nil).
-					Times(1)
-			},
+			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
 		},
 		{
 			name:         "update error",
+			inputID:      account.ID,
 			inputName:    "name",
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
@@ -368,7 +368,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			tt.setMockAccountServ(ctx, accountServ)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
-			result, err := uc.UpdateName(ctx, tt.inputName)
+			result, err := uc.UpdateName(ctx, tt.inputID, tt.inputName)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}

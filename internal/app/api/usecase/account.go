@@ -3,19 +3,20 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
+	"github.com/google/uuid"
 )
 
 type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
-	UpdateName(context.Context, string) (*dto.AccountDTO, error)
+	UpdateName(context.Context, uuid.UUID, string) (*dto.AccountDTO, error)
 }
 
 type accountUsecase struct {
@@ -55,6 +56,31 @@ func (u *accountUsecase) Create(ctx context.Context, name, password, confirmPass
 	return mapper.ToAccountDTO(account), nil
 }
 
-func (u *accountUsecase) UpdateName(ctx context.Context, name string) (*dto.AccountDTO, error) {
-	return nil, errors.New("not implemented")
+func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, name string) (*dto.AccountDTO, error) {
+	var account *entity.Account
+
+	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		var err error
+		account, err = u.accountRepo.FindOneByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		if err := account.SetName(name); err != nil {
+			return err
+		}
+
+		if err := u.accountServ.Exists(ctx, account); err != nil {
+			return err
+		}
+
+		return u.accountRepo.Update(ctx, account)
+	}); err != nil {
+		return nil, err
+	}
+
+	return mapper.ToAccountDTO(account), nil
 }
