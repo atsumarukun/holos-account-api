@@ -3,7 +3,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 
@@ -119,5 +118,15 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 }
 
 func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID) error {
-	return errors.New("not implemented")
+	return u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		account, err := u.accountRepo.FindOneByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		return u.accountRepo.Delete(ctx, account)
+	})
 }
