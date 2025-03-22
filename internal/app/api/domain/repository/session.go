@@ -4,8 +4,9 @@ package repository
 import (
 	"context"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/google/uuid"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
 
 type SessionRepository interface {

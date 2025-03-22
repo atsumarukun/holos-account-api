@@ -1,8 +1,9 @@
 package parameter
 
 import (
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/gin-gonic/gin"
+
+	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
 
 func GetContextParameter[T any](c *gin.Context, name string) (T, error) {

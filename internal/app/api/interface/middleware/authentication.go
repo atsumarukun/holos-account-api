@@ -4,10 +4,11 @@ import (
 	"log"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
-	"github.com/gin-gonic/gin"
 )
 
 type AuthenticationMiddleware interface {
