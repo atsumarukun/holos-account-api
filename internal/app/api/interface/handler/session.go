@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/builder"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/parameter"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
@@ -48,4 +50,21 @@ func (h *sessionHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, builder.ToSessionResponse(session))
 }
 
-func (h *sessionHandler) Logout(c *gin.Context) {}
+func (h *sessionHandler) Logout(c *gin.Context) {
+	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	if err := h.sessionUC.Logout(ctx, accountID); err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}

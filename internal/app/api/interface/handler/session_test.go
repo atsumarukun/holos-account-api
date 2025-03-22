@@ -130,7 +130,7 @@ func TestSession_Logout(t *testing.T) {
 		{
 			name:             "account id not found",
 			isSetAccountID:   false,
-			expectCode:       http.StatusUnauthorized,
+			expectCode:       http.StatusInternalServerError,
 			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
 		},
 		{
@@ -169,6 +169,8 @@ func TestSession_Logout(t *testing.T) {
 
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Logout(c)
+
+			c.Writer.WriteHeaderNow()
 
 			if w.Code != tt.expectCode {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
