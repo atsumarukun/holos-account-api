@@ -126,7 +126,7 @@ func TestAccount_UpdateName(t *testing.T) {
 	}{
 		{
 			name:           "success",
-			requestJSON:    []byte(`{"name": "name"}`),
+			requestJSON:    []byte(`{"password": "password", "name": "name"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusOK,
 			expectResponse: map[string]any{"name": "name"},
@@ -156,7 +156,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:           "update error",
-			requestJSON:    []byte(`{"name": "name"}`),
+			requestJSON:    []byte(`{"password": "password", "name": "name"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusConflict,
 			expectResponse: map[string]any{"message": "conflict"},
@@ -229,14 +229,14 @@ func TestAccount_UpdatePassword(t *testing.T) {
 	}{
 		{
 			name:           "success",
-			requestJSON:    []byte(`{"password": "password", "confirm_password": "password"}`),
+			requestJSON:    []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusOK,
 			expectResponse: map[string]any{"name": "name"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(accountDTO, nil).
 					Times(1)
 			},
@@ -259,14 +259,14 @@ func TestAccount_UpdatePassword(t *testing.T) {
 		},
 		{
 			name:           "update error",
-			requestJSON:    []byte(`{"password": "password", "confirm_password": "password"}`),
+			requestJSON:    []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusUnauthorized,
 			expectResponse: map[string]any{"message": "unauthorized"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil, status.ErrUnauthorized).
 					Times(1)
 			},

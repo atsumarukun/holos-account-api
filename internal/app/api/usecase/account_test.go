@@ -452,6 +452,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 		name                  string
 		inputID               uuid.UUID
 		inputPassword         string
+		inputNewPassword      string
 		inputConfirmPassword  string
 		expectResult          *dto.AccountDTO
 		expectError           error
@@ -462,6 +463,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "success",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         accountDTO,
 			expectError:          nil,
@@ -488,9 +490,35 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			},
 		},
 		{
+			name:                 "authentication failed",
+			inputID:              account.ID,
+			inputPassword:        "PASSWORD",
+			inputNewPassword:     "password",
+			inputConfirmPassword: "password",
+			expectResult:         nil,
+			expectError:          status.ErrUnauthorized,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+		},
+		{
 			name:                 "invalid password",
 			inputID:              account.ID,
-			inputPassword:        "",
+			inputPassword:        "password",
+			inputNewPassword:     "",
 			inputConfirmPassword: "",
 			expectResult:         nil,
 			expectError:          status.ErrBadRequest,
@@ -515,6 +543,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "find error",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          sql.ErrConnDone,
@@ -539,6 +568,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "update error",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          sql.ErrConnDone,
@@ -579,7 +609,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			tt.setMockAccountRepo(ctx, accountRepo)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
-			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputConfirmPassword)
+			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputNewPassword, tt.inputConfirmPassword)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}

@@ -18,7 +18,7 @@ import (
 type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
 	UpdateName(context.Context, uuid.UUID, string, string) (*dto.AccountDTO, error)
-	UpdatePassword(context.Context, uuid.UUID, string, string) (*dto.AccountDTO, error)
+	UpdatePassword(context.Context, uuid.UUID, string, string, string) (*dto.AccountDTO, error)
 	Delete(context.Context, uuid.UUID) error
 }
 
@@ -96,7 +96,7 @@ func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, password,
 	return mapper.ToAccountDTO(account), nil
 }
 
-func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, password, confirmPassword string) (*dto.AccountDTO, error) {
+func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, password, newPassword, confirmPassword string) (*dto.AccountDTO, error) {
 	var account *entity.Account
 
 	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
@@ -109,7 +109,11 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 			return status.ErrUnauthorized
 		}
 
-		if err := account.SetPassword(password, confirmPassword); err != nil {
+		if err := account.ComparePassword(password); err != nil {
+			return err
+		}
+
+		if err := account.SetPassword(newPassword, confirmPassword); err != nil {
 			return err
 		}
 
