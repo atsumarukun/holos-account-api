@@ -18,6 +18,7 @@ type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
 	Logout(context.Context, uuid.UUID) error
 	Authenticate(context.Context, string) (*dto.AccountDTO, error)
+	Authorize(context.Context, uuid.UUID) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -104,6 +105,18 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 		return nil
 	}); err != nil {
 		return nil, err
+	}
+
+	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *sessionUsecase) Authorize(ctx context.Context, accountID uuid.UUID) (*dto.AccountDTO, error) {
+	account, err := u.accountRepo.FindOneByID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if account == nil {
+		return nil, status.ErrUnauthorized
 	}
 
 	return mapper.ToAccountDTO(account), nil

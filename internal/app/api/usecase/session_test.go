@@ -526,3 +526,85 @@ func TestSession_Authenticate(t *testing.T) {
 		})
 	}
 }
+
+func TestSession_Authorize(t *testing.T) {
+	account := &entity.Account{
+		ID:       uuid.New(),
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+	accountDTO := &dto.AccountDTO{
+		ID:       account.ID,
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+
+	tests := []struct {
+		name               string
+		inputAccountID     uuid.UUID
+		expectResult       *dto.AccountDTO
+		expectError        error
+		setMockAccountRepo func(context.Context, *repository.MockAccountRepository)
+	}{
+		{
+			name:           "success",
+			inputAccountID: account.ID,
+			expectResult:   accountDTO,
+			expectError:    nil,
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+		},
+		{
+			name:           "account not found",
+			inputAccountID: account.ID,
+			expectResult:   nil,
+			expectError:    status.ErrUnauthorized,
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(nil, nil).
+					Times(1)
+			},
+		},
+		{
+			name:           "find account error",
+			inputAccountID: account.ID,
+			expectResult:   nil,
+			expectError:    sql.ErrConnDone,
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(nil, sql.ErrConnDone).
+					Times(1)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			ctx := t.Context()
+
+			accountRepo := repository.NewMockAccountRepository(ctrl)
+			tt.setMockAccountRepo(ctx, accountRepo)
+
+			uc := usecase.NewSessionUsecase(nil, nil, accountRepo)
+			result, err := uc.Authorize(ctx, tt.inputAccountID)
+			if !errors.Is(err, tt.expectError) {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}

@@ -18,6 +18,7 @@ import (
 type SessionHandler interface {
 	Login(*gin.Context)
 	Logout(*gin.Context)
+	Authorize(*gin.Context)
 }
 
 type sessionHandler struct {
@@ -67,4 +68,24 @@ func (h *sessionHandler) Logout(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *sessionHandler) Authorize(c *gin.Context) {
+	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	account, err := h.sessionUC.Authorize(ctx, accountID)
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, builder.ToAauthorizationResponse(account))
 }
