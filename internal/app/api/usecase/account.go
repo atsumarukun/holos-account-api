@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
@@ -19,6 +20,7 @@ type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
 	UpdateName(context.Context, uuid.UUID, string) (*dto.AccountDTO, error)
 	UpdatePassword(context.Context, uuid.UUID, string, string) (*dto.AccountDTO, error)
+	Delete(context.Context, uuid.UUID) error
 }
 
 type accountUsecase struct {
@@ -114,4 +116,8 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 	}
 
 	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID) error {
+	return errors.New("not implemented")
 }
