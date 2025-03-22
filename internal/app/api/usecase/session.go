@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
@@ -18,6 +19,7 @@ type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
 	Logout(context.Context, uuid.UUID) error
 	Authenticate(context.Context, string) (*dto.AccountDTO, error)
+	Authorize(context.Context, uuid.UUID) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -107,4 +109,8 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 	}
 
 	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *sessionUsecase) Authorize(ctx context.Context, accountID uuid.UUID) (*dto.AccountDTO, error) {
+	return nil, errors.New("not implemented")
 }
