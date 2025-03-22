@@ -180,3 +180,93 @@ func TestSession_Logout(t *testing.T) {
 		})
 	}
 }
+
+func TestSession_Authorize(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	accountDTO := &dto.AccountDTO{
+		ID:       uuid.New(),
+		Name:     "name",
+		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+	}
+
+	tests := []struct {
+		name             string
+		isSetAccountID   bool
+		expectResponse   map[string]any
+		expectCode       int
+		setMockSessionUC func(context.Context, *usecase.MockSessionUsecase)
+	}{
+		{
+			name:           "success",
+			isSetAccountID: true,
+			expectResponse: map[string]any{"id": accountDTO.ID, "name": "name"},
+			expectCode:     http.StatusNoContent,
+			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Authorize(ctx, gomock.Any()).
+					Return(accountDTO, nil).
+					Times(1)
+			},
+		},
+		{
+			name:             "account id not found",
+			isSetAccountID:   false,
+			expectResponse:   nil,
+			expectCode:       http.StatusInternalServerError,
+			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
+		},
+		{
+			name:           "authorize faild",
+			isSetAccountID: true,
+			expectCode:     http.StatusUnauthorized,
+			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Authorize(ctx, gomock.Any()).
+					Return(nil, status.ErrUnauthorized).
+					Times(1)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			w := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(w)
+			var err error
+			c.Request, err = http.NewRequestWithContext(ctx, "GET", "/authorization", http.NoBody)
+			if err != nil {
+				t.Error(err)
+			}
+			if tt.isSetAccountID {
+				c.Set("accountID", uuid.New())
+			}
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			sessionUC := usecase.NewMockSessionUsecase(ctrl)
+			tt.setMockSessionUC(ctx, sessionUC)
+
+			hdl := handler.NewSessionHandler(sessionUC)
+			hdl.Authorize(c)
+
+			c.Writer.WriteHeaderNow()
+
+			if w.Code != tt.expectCode {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
+			}
+
+			var response map[string]any
+			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+				t.Error(err)
+			}
+			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
