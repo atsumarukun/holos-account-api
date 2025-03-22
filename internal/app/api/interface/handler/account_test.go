@@ -312,3 +312,92 @@ func TestAccount_UpdatePassword(t *testing.T) {
 		})
 	}
 }
+
+func TestAccount_Delete(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name             string
+		isSetAccountID   bool
+		expectCode       int
+		expectResponse   map[string]any
+		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
+	}{
+		{
+			name:           "success",
+			isSetAccountID: true,
+			expectCode:     http.StatusNoContent,
+			expectResponse: nil,
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					Delete(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+		},
+		{
+			name:             "account id not found",
+			isSetAccountID:   false,
+			expectCode:       http.StatusInternalServerError,
+			expectResponse:   map[string]any{"message": "internal server error"},
+			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+		},
+		{
+			name:           "delete error",
+			isSetAccountID: true,
+			expectCode:     http.StatusUnauthorized,
+			expectResponse: map[string]any{"message": "unauthorized"},
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					Delete(ctx, gomock.Any()).
+					Return(status.ErrUnauthorized).
+					Times(1)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			w := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(w)
+			var err error
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/accounts", http.NoBody)
+			if err != nil {
+				t.Error(err)
+			}
+			if tt.isSetAccountID {
+				c.Set("accountID", uuid.New())
+			}
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			accountUC := usecase.NewMockAccountUsecase(ctrl)
+			tt.setMockAccountUC(ctx, accountUC)
+
+			hdl := handler.NewAccountHandler(accountUC)
+			hdl.Delete(c)
+
+			c.Writer.WriteHeaderNow()
+
+			if w.Code != tt.expectCode {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
+			}
+
+			if w.Body.Bytes() != nil {
+				var response map[string]any
+				if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+					t.Error(err)
+				}
+				if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+					t.Error(diff)
+				}
+			} else if tt.expectResponse != nil {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectResponse, w.Body.Bytes())
+			}
+		})
+	}
+}
