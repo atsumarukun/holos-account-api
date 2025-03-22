@@ -133,7 +133,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					UpdateName(ctx, gomock.Any(), gomock.Any()).
+					UpdateName(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(accountDTO, nil).
 					Times(1)
 			},
@@ -163,7 +163,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
-					UpdateName(ctx, gomock.Any(), gomock.Any()).
+					UpdateName(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil, status.ErrConflict).
 					Times(1)
 			},

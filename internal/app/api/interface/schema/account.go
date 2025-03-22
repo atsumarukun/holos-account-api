@@ -7,7 +7,8 @@ type CreateAccountRequest struct {
 }
 
 type UpdateAccountNameRequest struct {
-	Name string `json:"name"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
 }
 
 type UpdateAccountPasswordRequest struct {
