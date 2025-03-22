@@ -10,3 +10,10 @@ func ToSessionResponse(session *dto.SessionDTO) *schema.SessionResponse {
 		Token: session.Token,
 	}
 }
+
+func ToAauthorizationResponse(account *dto.AccountDTO) *schema.AauthorizationResponse {
+	return &schema.AauthorizationResponse{
+		ID:   account.ID,
+		Name: account.Name,
+	}
+}
