@@ -19,6 +19,7 @@ type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
 	UpdateName(context.Context, uuid.UUID, string) (*dto.AccountDTO, error)
 	UpdatePassword(context.Context, uuid.UUID, string, string) (*dto.AccountDTO, error)
+	Delete(context.Context, uuid.UUID) error
 }
 
 type accountUsecase struct {
@@ -114,4 +115,18 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 	}
 
 	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID) error {
+	return u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		account, err := u.accountRepo.FindOneByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		return u.accountRepo.Delete(ctx, account)
+	})
 }

@@ -10,6 +10,7 @@ func registerRouter(r *gin.Engine) {
 
 	accounts := r.Group("accounts")
 	accounts.POST("/", accountHdl.Create)
+	accounts.DELETE("/", authenticationMW.Authenticate, accountHdl.Delete)
 	accounts.PUT("/name", authenticationMW.Authenticate, accountHdl.UpdateName)
 	accounts.PUT("/password", authenticationMW.Authenticate, accountHdl.UpdatePassword)
 }

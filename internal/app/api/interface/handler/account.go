@@ -19,6 +19,7 @@ type AccountHandler interface {
 	Create(*gin.Context)
 	UpdateName(*gin.Context)
 	UpdatePassword(*gin.Context)
+	Delete(*gin.Context)
 }
 
 type accountHandler struct {
@@ -103,4 +104,23 @@ func (h *accountHandler) UpdatePassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, builder.ToAccountResponse(account))
+}
+
+func (h *accountHandler) Delete(c *gin.Context) {
+	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	if err := h.accountUC.Delete(ctx, accountID); err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
