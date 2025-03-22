@@ -18,6 +18,7 @@ import (
 type AccountHandler interface {
 	Create(*gin.Context)
 	UpdateName(*gin.Context)
+	UpdatePassword(*gin.Context)
 }
 
 type accountHandler struct {
@@ -68,6 +69,33 @@ func (h *accountHandler) UpdateName(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	account, err := h.accountUC.UpdateName(ctx, accountID, req.Name)
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, builder.ToAccountResponse(account))
+}
+
+func (h *accountHandler) UpdatePassword(c *gin.Context) {
+	var req schema.UpdateAccountPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
+		errors.Handle(c, status.ErrBadRequest)
+		return
+	}
+
+	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	account, err := h.accountUC.UpdatePassword(ctx, accountID, req.Password, req.ConfirmPassword)
 	if err != nil {
 		log.Println(err)
 		errors.Handle(c, err)

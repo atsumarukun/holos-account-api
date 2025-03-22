@@ -18,6 +18,7 @@ import (
 type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
 	UpdateName(context.Context, uuid.UUID, string) (*dto.AccountDTO, error)
+	UpdatePassword(context.Context, uuid.UUID, string, string) (*dto.AccountDTO, error)
 }
 
 type accountUsecase struct {
@@ -79,6 +80,31 @@ func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, name stri
 		}
 
 		if err := u.accountServ.Exists(ctx, account); err != nil {
+			return err
+		}
+
+		return u.accountRepo.Update(ctx, account)
+	}); err != nil {
+		return nil, err
+	}
+
+	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, password, confirmPassword string) (*dto.AccountDTO, error) {
+	var account *entity.Account
+
+	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		var err error
+		account, err = u.accountRepo.FindOneByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		if err := account.SetPassword(password, confirmPassword); err != nil {
 			return err
 		}
 
