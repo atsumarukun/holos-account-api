@@ -3,7 +3,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 
@@ -112,5 +111,13 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 }
 
 func (u *sessionUsecase) Authorize(ctx context.Context, accountID uuid.UUID) (*dto.AccountDTO, error) {
-	return nil, errors.New("not implemented")
+	account, err := u.accountRepo.FindOneByID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if account == nil {
+		return nil, status.ErrUnauthorized
+	}
+
+	return mapper.ToAccountDTO(account), nil
 }
