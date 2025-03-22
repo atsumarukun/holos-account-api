@@ -262,7 +262,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			requestJSON:    []byte(`{"password": "password", "confirm_password": "password"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusUnauthorized,
-			expectResponse: map[string]any{"message": "conflict"},
+			expectResponse: map[string]any{"message": "unauthorized"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
