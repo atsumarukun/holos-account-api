@@ -238,6 +238,30 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
+			name:         "name not changed",
+			inputID:      account.ID,
+			inputName:    "update",
+			expectResult: accountDTO,
+			expectError:  nil,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
+		},
+		{
 			name:         "invalid name",
 			inputID:      account.ID,
 			inputName:    "",
@@ -264,7 +288,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		{
 			name:         "account already exists",
 			inputID:      account.ID,
-			inputName:    "update",
+			inputName:    "name",
 			expectResult: nil,
 			expectError:  status.ErrConflict,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
@@ -294,7 +318,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		{
 			name:         "find error",
 			inputID:      account.ID,
-			inputName:    "update",
+			inputName:    "name",
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
