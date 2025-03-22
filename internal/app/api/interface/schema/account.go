@@ -13,6 +13,7 @@ type UpdateAccountNameRequest struct {
 
 type UpdateAccountPasswordRequest struct {
 	Password        string `json:"password"`
+	NewPassword     string `json:"new_passaword"`
 	ConfirmPassword string `json:"confirm_password"`
 }
 

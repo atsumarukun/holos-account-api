@@ -87,16 +87,16 @@ func (mr *MockAccountUsecaseMockRecorder) UpdateName(arg0, arg1, arg2, arg3 any)
 }
 
 // UpdatePassword mocks base method.
-func (m *MockAccountUsecase) UpdatePassword(arg0 context.Context, arg1 uuid.UUID, arg2, arg3 string) (*dto.AccountDTO, error) {
+func (m *MockAccountUsecase) UpdatePassword(arg0 context.Context, arg1 uuid.UUID, arg2, arg3, arg4 string) (*dto.AccountDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePassword", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "UpdatePassword", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*dto.AccountDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdatePassword indicates an expected call of UpdatePassword.
-func (mr *MockAccountUsecaseMockRecorder) UpdatePassword(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockAccountUsecaseMockRecorder) UpdatePassword(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockAccountUsecase)(nil).UpdatePassword), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockAccountUsecase)(nil).UpdatePassword), arg0, arg1, arg2, arg3, arg4)
 }
