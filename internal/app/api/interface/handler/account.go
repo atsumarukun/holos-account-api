@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/builder"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/parameter"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
@@ -48,4 +50,29 @@ func (h *accountHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, builder.ToAccountResponse(account))
 }
 
-func (h *accountHandler) UpdateName(c *gin.Context) {}
+func (h *accountHandler) UpdateName(c *gin.Context) {
+	var req schema.UpdateAccountNameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
+		errors.Handle(c, status.ErrBadRequest)
+		return
+	}
+
+	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	account, err := h.accountUC.UpdateName(ctx, accountID, req.Name)
+	if err != nil {
+		log.Println(err)
+		errors.Handle(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, builder.ToAccountResponse(account))
+}

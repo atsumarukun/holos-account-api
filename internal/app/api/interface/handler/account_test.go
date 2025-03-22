@@ -126,10 +126,10 @@ func TestAccount_UpdateName(t *testing.T) {
 	}{
 		{
 			name:           "success",
-			requestJSON:    []byte(`{"name": "update"}`),
+			requestJSON:    []byte(`{"name": "name"}`),
 			isSetAccountID: true,
-			expectCode:     http.StatusCreated,
-			expectResponse: map[string]any{"name": "update"},
+			expectCode:     http.StatusOK,
+			expectResponse: map[string]any{"name": "name"},
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -148,7 +148,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:             "account id not found",
-			requestJSON:      []byte(`{"name": "update"}`),
+			requestJSON:      []byte(`{"name": "name"}`),
 			isSetAccountID:   false,
 			expectCode:       http.StatusInternalServerError,
 			expectResponse:   map[string]any{"message": "internal server error"},
@@ -156,7 +156,7 @@ func TestAccount_UpdateName(t *testing.T) {
 		},
 		{
 			name:           "update error",
-			requestJSON:    []byte(`{"name": "update"}`),
+			requestJSON:    []byte(`{"name": "name"}`),
 			isSetAccountID: true,
 			expectCode:     http.StatusConflict,
 			expectResponse: map[string]any{"message": "conflict"},
@@ -191,7 +191,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			tt.setMockAccountUC(ctx, accountUC)
 
 			hdl := handler.NewAccountHandler(accountUC)
-			hdl.Create(c)
+			hdl.UpdateName(c)
 
 			c.Writer.WriteHeaderNow()
 
