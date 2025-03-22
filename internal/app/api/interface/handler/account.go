@@ -15,6 +15,7 @@ import (
 
 type AccountHandler interface {
 	Create(*gin.Context)
+	UpdateName(*gin.Context)
 }
 
 type accountHandler struct {
@@ -46,3 +47,5 @@ func (h *accountHandler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, builder.ToAccountResponse(account))
 }
+
+func (h *accountHandler) UpdateName(c *gin.Context) {}
