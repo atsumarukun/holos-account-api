@@ -17,6 +17,10 @@ type UpdateAccountPasswordRequest struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
+type DeleteAccountRequest struct {
+	Password string `json:"password"`
+}
+
 type AccountResponse struct {
 	Name string `json:"name"`
 }

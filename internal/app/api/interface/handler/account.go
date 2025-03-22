@@ -107,6 +107,13 @@ func (h *accountHandler) UpdatePassword(c *gin.Context) {
 }
 
 func (h *accountHandler) Delete(c *gin.Context) {
+	var req schema.DeleteAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
+		errors.Handle(c, status.ErrBadRequest)
+		return
+	}
+
 	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
 	if err != nil {
 		log.Println(err)
@@ -116,7 +123,7 @@ func (h *accountHandler) Delete(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	if err := h.accountUC.Delete(ctx, accountID); err != nil {
+	if err := h.accountUC.Delete(ctx, accountID, req.Password); err != nil {
 		log.Println(err)
 		errors.Handle(c, err)
 		return
