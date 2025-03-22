@@ -10,4 +10,5 @@ func registerRouter(r *gin.Engine) {
 
 	accounts := r.Group("accounts")
 	accounts.POST("/", accountHdl.Create)
+	accounts.PUT("/name", authenticationMW.Authenticate, accountHdl.UpdateName)
 }

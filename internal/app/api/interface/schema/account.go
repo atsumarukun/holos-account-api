@@ -6,6 +6,10 @@ type CreateAccountRequest struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
+type UpdateAccountNameRequest struct {
+	Name string `json:"name"`
+}
+
 type AccountResponse struct {
 	Name string `json:"name"`
 }

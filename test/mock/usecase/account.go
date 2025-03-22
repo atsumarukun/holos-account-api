@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	dto "github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -54,4 +55,19 @@ func (m *MockAccountUsecase) Create(arg0 context.Context, arg1, arg2, arg3 strin
 func (mr *MockAccountUsecaseMockRecorder) Create(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAccountUsecase)(nil).Create), arg0, arg1, arg2, arg3)
+}
+
+// UpdateName mocks base method.
+func (m *MockAccountUsecase) UpdateName(arg0 context.Context, arg1 uuid.UUID, arg2 string) (*dto.AccountDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateName", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*dto.AccountDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateName indicates an expected call of UpdateName.
+func (mr *MockAccountUsecaseMockRecorder) UpdateName(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateName", reflect.TypeOf((*MockAccountUsecase)(nil).UpdateName), arg0, arg1, arg2)
 }
