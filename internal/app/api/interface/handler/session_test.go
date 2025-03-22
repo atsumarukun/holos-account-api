@@ -155,7 +155,7 @@ func TestSession_Logout(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/logout", nil)
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/logout", http.NoBody)
 			if err != nil {
 				t.Error(err)
 			}
