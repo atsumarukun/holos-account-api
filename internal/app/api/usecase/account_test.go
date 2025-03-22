@@ -195,6 +195,7 @@ func TestAccount_UpdateName(t *testing.T) {
 	tests := []struct {
 		name                  string
 		inputID               uuid.UUID
+		inputPassword         string
 		inputName             string
 		expectResult          *dto.AccountDTO
 		expectError           error
@@ -203,11 +204,12 @@ func TestAccount_UpdateName(t *testing.T) {
 		setMockAccountServ    func(context.Context, *service.MockAccountService)
 	}{
 		{
-			name:         "success",
-			inputID:      account.ID,
-			inputName:    "update",
-			expectResult: accountDTO,
-			expectError:  nil,
+			name:          "success",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "update",
+			expectResult:  accountDTO,
+			expectError:   nil,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -238,11 +240,12 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
-			name:         "name not changed",
-			inputID:      account.ID,
-			inputName:    "update",
-			expectResult: accountDTO,
-			expectError:  nil,
+			name:          "authentication failed",
+			inputID:       account.ID,
+			inputPassword: "PASSWORD",
+			inputName:     "update",
+			expectResult:  nil,
+			expectError:   status.ErrUnauthorized,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -262,11 +265,12 @@ func TestAccount_UpdateName(t *testing.T) {
 			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
 		},
 		{
-			name:         "invalid name",
-			inputID:      account.ID,
-			inputName:    "",
-			expectResult: nil,
-			expectError:  status.ErrBadRequest,
+			name:          "name not changed",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "update",
+			expectResult:  accountDTO,
+			expectError:   nil,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -286,11 +290,37 @@ func TestAccount_UpdateName(t *testing.T) {
 			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
 		},
 		{
-			name:         "account already exists",
-			inputID:      account.ID,
-			inputName:    "name",
-			expectResult: nil,
-			expectError:  status.ErrConflict,
+			name:          "invalid name",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "",
+			expectResult:  nil,
+			expectError:   status.ErrBadRequest,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
+		},
+		{
+			name:          "account already exists",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "name",
+			expectResult:  nil,
+			expectError:   status.ErrConflict,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -316,11 +346,12 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
-			name:         "find error",
-			inputID:      account.ID,
-			inputName:    "name",
-			expectResult: nil,
-			expectError:  sql.ErrConnDone,
+			name:          "find error",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "name",
+			expectResult:  nil,
+			expectError:   sql.ErrConnDone,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -340,11 +371,12 @@ func TestAccount_UpdateName(t *testing.T) {
 			setMockAccountServ: func(context.Context, *service.MockAccountService) {},
 		},
 		{
-			name:         "update error",
-			inputID:      account.ID,
-			inputName:    "update",
-			expectResult: nil,
-			expectError:  sql.ErrConnDone,
+			name:          "update error",
+			inputID:       account.ID,
+			inputPassword: "password",
+			inputName:     "update",
+			expectResult:  nil,
+			expectError:   sql.ErrConnDone,
 			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -392,7 +424,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			tt.setMockAccountServ(ctx, accountServ)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
-			result, err := uc.UpdateName(ctx, tt.inputID, tt.inputName)
+			result, err := uc.UpdateName(ctx, tt.inputID, tt.inputPassword, tt.inputName)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
@@ -420,6 +452,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 		name                  string
 		inputID               uuid.UUID
 		inputPassword         string
+		inputNewPassword      string
 		inputConfirmPassword  string
 		expectResult          *dto.AccountDTO
 		expectError           error
@@ -430,6 +463,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "success",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         accountDTO,
 			expectError:          nil,
@@ -456,9 +490,35 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			},
 		},
 		{
+			name:                 "authentication failed",
+			inputID:              account.ID,
+			inputPassword:        "PASSWORD",
+			inputNewPassword:     "password",
+			inputConfirmPassword: "password",
+			expectResult:         nil,
+			expectError:          status.ErrUnauthorized,
+			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(ctx, gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(ctx, gomock.Any()).
+					Return(account, nil).
+					Times(1)
+			},
+		},
+		{
 			name:                 "invalid password",
 			inputID:              account.ID,
-			inputPassword:        "",
+			inputPassword:        "password",
+			inputNewPassword:     "",
 			inputConfirmPassword: "",
 			expectResult:         nil,
 			expectError:          status.ErrBadRequest,
@@ -483,6 +543,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "find error",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          sql.ErrConnDone,
@@ -507,6 +568,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			name:                 "update error",
 			inputID:              account.ID,
 			inputPassword:        "password",
+			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
 			expectError:          sql.ErrConnDone,
@@ -547,7 +609,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			tt.setMockAccountRepo(ctx, accountRepo)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
-			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputConfirmPassword)
+			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputNewPassword, tt.inputConfirmPassword)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
