@@ -19,6 +19,7 @@ type AccountHandler interface {
 	Create(*gin.Context)
 	UpdateName(*gin.Context)
 	UpdatePassword(*gin.Context)
+	Delete(*gin.Context)
 }
 
 type accountHandler struct {
@@ -104,3 +105,5 @@ func (h *accountHandler) UpdatePassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, builder.ToAccountResponse(account))
 }
+
+func (h *accountHandler) Delete(c *gin.Context) {}
