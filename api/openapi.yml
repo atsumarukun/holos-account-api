@@ -54,6 +54,8 @@ paths:
       responses:
         204:
           $ref: "#/components/responses/204"
+        400:
+          $ref: "#/components/responses/400"
         401:
           $ref: "#/components/responses/401"
         500:
@@ -122,6 +124,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/login"
+        400:
+          $ref: "#/components/responses/400"
         401:
           $ref: "#/components/responses/401"
         500:
@@ -249,7 +253,9 @@ components:
                 properties:
                   name:
                     readOnly: true
-<<<<<<< HEAD
+                  new_password:
+                    type: "string"
+                    example: "password"
     delete_account:
       required: true
       content:
@@ -263,11 +269,6 @@ components:
                     readOnly: true
                   confirm_password:
                     readOnly: true
-=======
-                  new_password:
-                    type: "string"
-                    example: "password"
->>>>>>> main
     login:
       required: true
       content:
