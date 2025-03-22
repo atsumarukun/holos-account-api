@@ -146,6 +146,28 @@ paths:
           $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
+  /authorization:
+    get:
+      summary: "ログアウト"
+      tags:
+        - "session"
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          schema:
+            type: "string"
+          required: true
+          description: "セッショントークン"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      responses:
+        200:
+          $ref: "#/components/responses/authorization"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
 
 components:
   securitySchemes:
@@ -157,6 +179,10 @@ components:
     account:
       type: "object"
       properties:
+        id:
+          type: "string"
+          example: "397bde64-8042-4e38-bca0-a4ba9f4f0e5f"
+          readOnly: true
         name:
           type: "string"
           example: "name"
@@ -236,25 +262,46 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/account"
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  id:
+                    writeOnly: true
     update_account_name:
       description: "Success"
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/account"
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  id:
+                    writeOnly: true
     update_account_password:
       description: "Success"
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/account"
+            allOf:
+              - $ref: "#/components/schemas/account"
+              - type: "object"
+                properties:
+                  id:
+                    writeOnly: true
     login:
       description: "Success"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/session"
+    authorization:
+      description: "Success"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/account"
     204:
       description: "Success"
     400:
