@@ -412,7 +412,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 	}
 	accountDTO := &dto.AccountDTO{
 		ID:       account.ID,
-		Name:     "update",
+		Name:     "name",
 		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
 	}
 
