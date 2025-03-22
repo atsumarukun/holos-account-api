@@ -247,6 +247,9 @@ components:
                 properties:
                   name:
                     readOnly: true
+                  new_password:
+                    type: "string"
+                    example: "password"
     login:
       required: true
       content:
