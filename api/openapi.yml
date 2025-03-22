@@ -154,7 +154,7 @@ paths:
           $ref: "#/components/responses/500"
   /authorization:
     get:
-      summary: "ログアウト"
+      summary: "認可"
       tags:
         - "session"
       security:
