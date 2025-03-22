@@ -69,7 +69,7 @@ func (h *accountHandler) UpdateName(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	account, err := h.accountUC.UpdateName(ctx, accountID, req.Name)
+	account, err := h.accountUC.UpdateName(ctx, accountID, req.Password, req.Name)
 	if err != nil {
 		log.Println(err)
 		errors.Handle(c, err)
@@ -96,7 +96,7 @@ func (h *accountHandler) UpdatePassword(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	account, err := h.accountUC.UpdatePassword(ctx, accountID, req.Password, req.ConfirmPassword)
+	account, err := h.accountUC.UpdatePassword(ctx, accountID, req.Password, req.NewPassword, req.ConfirmPassword)
 	if err != nil {
 		log.Println(err)
 		errors.Handle(c, err)

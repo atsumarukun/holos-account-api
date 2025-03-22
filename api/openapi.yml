@@ -234,8 +234,6 @@ components:
               - $ref: "#/components/schemas/account"
               - type: "object"
                 properties:
-                  password:
-                    readOnly: true
                   confirm_password:
                     readOnly: true
     update_account_password:
@@ -249,6 +247,9 @@ components:
                 properties:
                   name:
                     readOnly: true
+                  new_password:
+                    type: "string"
+                    example: "password"
     login:
       required: true
       content:
