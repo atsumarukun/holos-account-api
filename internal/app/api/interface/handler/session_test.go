@@ -91,6 +91,8 @@ func TestSession_Logtin(t *testing.T) {
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Login(c)
 
+			c.Writer.WriteHeaderNow()
+
 			if w.Code != tt.expectCode {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}

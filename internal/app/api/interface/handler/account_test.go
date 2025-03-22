@@ -90,6 +90,8 @@ func TestAccount_Create(t *testing.T) {
 			hdl := handler.NewAccountHandler(accountUC)
 			hdl.Create(c)
 
+			c.Writer.WriteHeaderNow()
+
 			if w.Code != tt.expectCode {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
