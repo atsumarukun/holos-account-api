@@ -4,6 +4,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
@@ -11,7 +13,6 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
-	"github.com/google/uuid"
 )
 
 type AccountUsecase interface {
