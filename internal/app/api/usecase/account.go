@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
@@ -14,6 +15,7 @@ import (
 
 type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
+	UpdateName(context.Context, string) (*dto.AccountDTO, error)
 }
 
 type accountUsecase struct {
@@ -51,4 +53,8 @@ func (u *accountUsecase) Create(ctx context.Context, name, password, confirmPass
 	}
 
 	return mapper.ToAccountDTO(account), nil
+}
+
+func (u *accountUsecase) UpdateName(ctx context.Context, name string) (*dto.AccountDTO, error) {
+	return nil, errors.New("not implemented")
 }
