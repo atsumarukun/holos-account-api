@@ -124,6 +124,28 @@ paths:
           $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
+  /logout:
+    delete:
+      summary: "ログアウト"
+      tags:
+        - "session"
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          schema:
+            type: "string"
+          required: true
+          description: "セッショントークン"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+      responses:
+        204:
+          $ref: "#/components/responses/204"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
 
 components:
   securitySchemes:

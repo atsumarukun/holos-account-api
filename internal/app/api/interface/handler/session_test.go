@@ -91,6 +91,8 @@ func TestSession_Logtin(t *testing.T) {
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Login(c)
 
+			c.Writer.WriteHeaderNow()
+
 			if w.Code != tt.expectCode {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
@@ -101,6 +103,79 @@ func TestSession_Logtin(t *testing.T) {
 			}
 			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
 				t.Error(diff)
+			}
+		})
+	}
+}
+
+func TestSession_Logout(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name             string
+		isSetAccountID   bool
+		expectCode       int
+		setMockSessionUC func(context.Context, *usecase.MockSessionUsecase)
+	}{
+		{
+			name:           "success",
+			isSetAccountID: true,
+			expectCode:     http.StatusNoContent,
+			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Logout(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+		},
+		{
+			name:             "account id not found",
+			isSetAccountID:   false,
+			expectCode:       http.StatusInternalServerError,
+			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
+		},
+		{
+			name:           "logout faild",
+			isSetAccountID: true,
+			expectCode:     http.StatusUnauthorized,
+			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Logout(ctx, gomock.Any()).
+					Return(status.ErrUnauthorized).
+					Times(1)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			w := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(w)
+			var err error
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/logout", http.NoBody)
+			if err != nil {
+				t.Error(err)
+			}
+			if tt.isSetAccountID {
+				c.Set("accountID", uuid.New())
+			}
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			sessionUC := usecase.NewMockSessionUsecase(ctrl)
+			tt.setMockSessionUC(ctx, sessionUC)
+
+			hdl := handler.NewSessionHandler(sessionUC)
+			hdl.Logout(c)
+
+			c.Writer.WriteHeaderNow()
+
+			if w.Code != tt.expectCode {
+				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 		})
 	}

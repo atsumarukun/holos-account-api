@@ -4,6 +4,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
@@ -14,6 +16,8 @@ import (
 
 type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
+	Logout(context.Context, uuid.UUID) error
+	Authenticate(context.Context, string) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -61,4 +65,46 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 	}
 
 	return mapper.ToSessionDTO(session), nil
+}
+
+func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error {
+	return u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		session, err := u.sessionRepo.FindOneByAccountID(ctx, accountID)
+		if err != nil {
+			return err
+		}
+		if session == nil {
+			return status.ErrUnauthorized
+		}
+
+		return u.sessionRepo.Delete(ctx, session)
+	})
+}
+
+func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.AccountDTO, error) {
+	var account *entity.Account
+
+	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
+		session, err := u.sessionRepo.FindOneByToken(ctx, token)
+		if err != nil {
+			return err
+		}
+		if session == nil {
+			return status.ErrUnauthorized
+		}
+
+		account, err = u.accountRepo.FindOneByID(ctx, session.AccountID)
+		if err != nil {
+			return err
+		}
+		if account == nil {
+			return status.ErrUnauthorized
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return mapper.ToAccountDTO(account), nil
 }
