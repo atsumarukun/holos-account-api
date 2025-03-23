@@ -2,10 +2,13 @@
 
 ## 開発環境
 
-下記コマンドを用いて.envの作成を行う.
+下記コマンドを用いて.envの作成とDockerNetworkのを行う.<br />
+既にDockerNetworkが作成されている場合DockerNetWorkの作成は不要.
 ```bash
 cp .env.example .env
+docker network create nw-holos
 ```
+
 その後[DevContainerを用いたコンテナの立ち上げ](https://code.visualstudio.com/docs/devcontainers/create-dev-container#:~:text=With%20the%20above%20devcontainer.json,Reopen%20in%20Container%20command)を行う.<br />
 DevContainerを利用しない場合は下記コマンドでコンテナを立ち上げる.
 ```bash
