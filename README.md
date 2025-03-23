@@ -41,3 +41,22 @@ issue-${ISSUE_NUMBER}   // issue-1
 ```
 ${TAG}: ${MESSAGE}   // create: ユーザー削除機能を作成.
 ```
+
+## デプロイ
+
+バージョンタグへpushすることでデプロイが行われる.
+
+デプロイされるリソースは以下の通り.
+
+| リソース | デプロイ先 |
+| --- | --- |
+| API | GitHub Container Registry |
+| SwaggerUI | GitHub Pages |
+
+### API
+
+バージョンタグで指定されたバージョンでデプロイされる.<br />
+https://github.com/atsumarukun/holos-account-api/pkgs/container/holos-account-api
+
+### SwaggerUI
+https://atsumarukun.github.io/holos-account-api
