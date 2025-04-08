@@ -1,13 +1,13 @@
 openapi: "3.0.3"
 
 info:
-  title: "holos: 認証認可 API"
+  title: "holos: アカウント API"
   version: ""
 
 servers:
   - url: "http://localhost:8001"
     description: "localhost"
-  - url: "http://auth-server:8000"
+  - url: "http://account-api:8000"
     description: "docker compose service"
 
 paths:
