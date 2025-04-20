@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"context"
-	"log"
 
 	"github.com/jmoiron/sqlx"
 
@@ -21,31 +20,26 @@ func NewDBTransactionObject(db *sqlx.DB) transaction.TransactionObject {
 	}
 }
 
-func (to *transactionObject) Transaction(ctx context.Context, fn func(context.Context) error) error {
+func (to *transactionObject) Transaction(ctx context.Context, fn func(context.Context) error) (err error) {
 	tx, err := to.db.Beginx()
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if err := recover(); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Println(rollbackErr.Error())
-			}
+		if r := recover(); r != nil {
+			err = tx.Rollback()
 		}
 	}()
 
 	ctx = context.WithValue(ctx, transactionKey{}, tx)
 
 	if err := fn(ctx); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Println(rollbackErr.Error())
-		}
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Println(err.Error())
+		return err
 	}
 
 	return nil
