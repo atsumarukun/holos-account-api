@@ -380,7 +380,7 @@ func TestSession_Authenticate(t *testing.T) {
 			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByToken(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
@@ -409,7 +409,7 @@ func TestSession_Authenticate(t *testing.T) {
 			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByToken(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
@@ -432,7 +432,7 @@ func TestSession_Authenticate(t *testing.T) {
 			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByToken(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
@@ -461,7 +461,7 @@ func TestSession_Authenticate(t *testing.T) {
 			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByToken(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -484,7 +484,7 @@ func TestSession_Authenticate(t *testing.T) {
 			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByToken(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
