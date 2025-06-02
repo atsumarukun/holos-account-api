@@ -22,8 +22,8 @@
 | --- | --- | --- |
 | /accounts | POST | アカウント作成 |
 | /accounts | DELETE | アカウント削除 |
-| /accounts/name | PUT | アカウント名更新 |
-| /accounts/password | PUT | パスワード更新 |
+| /accounts/name | PATCH | アカウント名更新 |
+| /accounts/password | PATCH | パスワード更新 |
 
 # 詳細設計
 
@@ -128,3 +128,4 @@
 | --- | --- | --- |
 | 2025/03/16 | @atsumarukun | 初版 |
 | 2025/03/23 | @atsumarukun | 更新と削除時に認証を追加 |
+| 2025/06/02 | @atsumarukun | アカウント名とパスワードの更新をPATCHに変更 |
