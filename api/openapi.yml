@@ -61,7 +61,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
   /accounts/name:
-    put:
+    patch:
       summary: "アカウント名更新"
       tags:
         - "accounts"
@@ -89,7 +89,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
   /accounts/password:
-    put:
+    patch:
       summary: "パスワード更新"
       tags:
         - "accounts"
