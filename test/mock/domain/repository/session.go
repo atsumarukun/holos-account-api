@@ -71,19 +71,19 @@ func (mr *MockSessionRepositoryMockRecorder) FindOneByAccountID(arg0, arg1 any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByAccountID", reflect.TypeOf((*MockSessionRepository)(nil).FindOneByAccountID), arg0, arg1)
 }
 
-// FindOneByToken mocks base method.
-func (m *MockSessionRepository) FindOneByToken(arg0 context.Context, arg1 string) (*entity.Session, error) {
+// FindOneByTokenAndNotExpired mocks base method.
+func (m *MockSessionRepository) FindOneByTokenAndNotExpired(arg0 context.Context, arg1 string) (*entity.Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOneByToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindOneByTokenAndNotExpired", arg0, arg1)
 	ret0, _ := ret[0].(*entity.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindOneByToken indicates an expected call of FindOneByToken.
-func (mr *MockSessionRepositoryMockRecorder) FindOneByToken(arg0, arg1 any) *gomock.Call {
+// FindOneByTokenAndNotExpired indicates an expected call of FindOneByTokenAndNotExpired.
+func (mr *MockSessionRepositoryMockRecorder) FindOneByTokenAndNotExpired(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByToken", reflect.TypeOf((*MockSessionRepository)(nil).FindOneByToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByTokenAndNotExpired", reflect.TypeOf((*MockSessionRepository)(nil).FindOneByTokenAndNotExpired), arg0, arg1)
 }
 
 // Save mocks base method.

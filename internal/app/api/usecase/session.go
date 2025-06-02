@@ -86,7 +86,7 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 	var account *entity.Account
 
 	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
-		session, err := u.sessionRepo.FindOneByToken(ctx, token)
+		session, err := u.sessionRepo.FindOneByTokenAndNotExpired(ctx, token)
 		if err != nil {
 			return err
 		}

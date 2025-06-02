@@ -217,7 +217,7 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 	}
 }
 
-func TestSession_FindOneByToken(t *testing.T) {
+func TestSession_FindOneByTokenAndNotExpired(t *testing.T) {
 	session := &entity.Session{
 		AccountID: uuid.New(),
 		Token:     "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
@@ -237,7 +237,7 @@ func TestSession_FindOneByToken(t *testing.T) {
 			expectResult: session,
 			expectError:  nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ? AND expires_at > NOW(6);`)).
 					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"}).AddRow(session.AccountID, session.Token, session.ExpiresAt)).
 					WillReturnError(nil)
@@ -249,7 +249,7 @@ func TestSession_FindOneByToken(t *testing.T) {
 			expectResult: nil,
 			expectError:  nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ? AND expires_at > NOW(6);`)).
 					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
 					WillReturnError(nil)
@@ -262,7 +262,7 @@ func TestSession_FindOneByToken(t *testing.T) {
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
 			setMockDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ?;`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT account_id, token, expires_at FROM sessions WHERE token = ? AND expires_at > NOW(6);`)).
 					WithArgs("1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS").
 					WillReturnRows(sqlmock.NewRows([]string{"account_id", "token", "expires_at"})).
 					WillReturnError(sql.ErrConnDone)
@@ -277,7 +277,7 @@ func TestSession_FindOneByToken(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBSessionRepository(db)
-			result, err := repo.FindOneByToken(t.Context(), tt.inputToken)
+			result, err := repo.FindOneByTokenAndNotExpired(t.Context(), tt.inputToken)
 			if !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}

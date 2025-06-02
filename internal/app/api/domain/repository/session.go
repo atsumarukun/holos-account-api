@@ -13,5 +13,5 @@ type SessionRepository interface {
 	Save(context.Context, *entity.Session) error
 	Delete(context.Context, *entity.Session) error
 	FindOneByAccountID(context.Context, uuid.UUID) (*entity.Session, error)
-	FindOneByToken(context.Context, string) (*entity.Session, error)
+	FindOneByTokenAndNotExpired(context.Context, string) (*entity.Session, error)
 }
