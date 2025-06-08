@@ -2,8 +2,8 @@ package handler_test
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,41 +31,54 @@ func TestSession_Logtin(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		requestJSON      []byte
+		requestBody      []byte
 		expectCode       int
-		expectResponse   map[string]any
-		setMockSessionUC func(context.Context, *usecase.MockSessionUsecase)
+		expectResponse   []byte
+		setMockSessionUC func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:           "success",
-			requestJSON:    []byte(`{"account_name": "name", "password": "password"}`),
+			name:           "successfully loggedin",
+			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
 			expectCode:     http.StatusOK,
-			expectResponse: map[string]any{"token": "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"},
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			expectResponse: fmt.Appendf(nil, `{"token":"%s"}`, sessionDTO.Token),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Login(ctx, gomock.Any(), gomock.Any()).
+					Login(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(sessionDTO, nil).
 					Times(1)
 			},
 		},
 		{
 			name:             "invalid request",
-			requestJSON:      nil,
+			requestBody:      nil,
 			expectCode:       http.StatusBadRequest,
-			expectResponse:   map[string]any{"message": "bad request"},
-			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
+			expectResponse:   []byte(`{"message":"bad request"}`),
+			setMockSessionUC: func(*usecase.MockSessionUsecase) {},
+		},
+		{
+			name:           "unauthorized",
+			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
+			expectCode:     http.StatusUnauthorized,
+			expectResponse: []byte(`{"message":"unauthorized"}`),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Login(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, status.ErrUnauthorized).
+					Times(1)
+			},
 		},
 		{
 			name:           "login error",
-			requestJSON:    []byte(`{"account_name": "name", "password": "password"}`),
-			expectCode:     http.StatusUnauthorized,
-			expectResponse: map[string]any{"message": "unauthorized"},
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
+			expectCode:     http.StatusInternalServerError,
+			expectResponse: []byte(`{"message":"internal server error"}`),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Login(ctx, gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrUnauthorized).
+					Login(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -77,7 +90,7 @@ func TestSession_Logtin(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/login", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/login", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
@@ -86,7 +99,7 @@ func TestSession_Logtin(t *testing.T) {
 			defer ctrl.Finish()
 
 			sessionUC := usecase.NewMockSessionUsecase(ctrl)
-			tt.setMockSessionUC(ctx, sessionUC)
+			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Login(c)
@@ -97,11 +110,7 @@ func TestSession_Logtin(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-				t.Error(err)
-			}
-			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -112,42 +121,55 @@ func TestSession_Logout(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name             string
-		isSetAccountID   bool
-		expectResponse   map[string]any
-		expectCode       int
-		setMockSessionUC func(context.Context, *usecase.MockSessionUsecase)
+		name                  string
+		hasAccountIDInContext bool
+		expectResponse        []byte
+		expectCode            int
+		setMockSessionUC      func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:           "success",
-			isSetAccountID: true,
-			expectResponse: nil,
-			expectCode:     http.StatusNoContent,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			name:                  "successfully loggedout",
+			hasAccountIDInContext: true,
+			expectResponse:        nil,
+			expectCode:            http.StatusNoContent,
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Logout(ctx, gomock.Any()).
+					Logout(gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
 		},
 		{
-			name:             "account id not found",
-			isSetAccountID:   false,
-			expectResponse:   map[string]any{"message": "internal server error"},
-			expectCode:       http.StatusInternalServerError,
-			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
+			name:                  "account id not set",
+			hasAccountIDInContext: false,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusInternalServerError,
+			setMockSessionUC:      func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:           "logout faild",
-			isSetAccountID: true,
-			expectResponse: map[string]any{"message": "unauthorized"},
-			expectCode:     http.StatusUnauthorized,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			name:                  "unauthorized",
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusUnauthorized,
+			expectResponse:        []byte(`{"message":"unauthorized"}`),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Logout(ctx, gomock.Any()).
+					Logout(gomock.Any(), gomock.Any()).
 					Return(status.ErrUnauthorized).
+					Times(1)
+			},
+		},
+		{
+			name:                  "logout faild",
+			hasAccountIDInContext: true,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusInternalServerError,
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Logout(gomock.Any(), gomock.Any()).
+					Return(sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -163,7 +185,7 @@ func TestSession_Logout(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.isSetAccountID {
+			if tt.hasAccountIDInContext {
 				c.Set("accountID", uuid.New())
 			}
 
@@ -171,7 +193,7 @@ func TestSession_Logout(t *testing.T) {
 			defer ctrl.Finish()
 
 			sessionUC := usecase.NewMockSessionUsecase(ctrl)
-			tt.setMockSessionUC(ctx, sessionUC)
+			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Logout(c)
@@ -182,16 +204,8 @@ func TestSession_Logout(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			if w.Body.Bytes() != nil {
-				var response map[string]any
-				if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-					t.Error(err)
-				}
-				if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
-					t.Error(diff)
-				}
-			} else if tt.expectResponse != nil {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectResponse, w.Body.Bytes())
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}
@@ -207,42 +221,55 @@ func TestSession_Authorize(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		isSetAccountID   bool
-		expectResponse   map[string]any
-		expectCode       int
-		setMockSessionUC func(context.Context, *usecase.MockSessionUsecase)
+		name                  string
+		hasAccountIDInContext bool
+		expectResponse        []byte
+		expectCode            int
+		setMockSessionUC      func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:           "success",
-			isSetAccountID: true,
-			expectResponse: map[string]any{"id": accountDTO.ID.String(), "name": "name"},
-			expectCode:     http.StatusOK,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			name:                  "successfully authorized",
+			hasAccountIDInContext: true,
+			expectResponse:        fmt.Appendf(nil, `{"id":"%s","name":"%s"}`, accountDTO.ID, accountDTO.Name),
+			expectCode:            http.StatusOK,
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authorize(ctx, gomock.Any()).
+					Authorize(gomock.Any(), gomock.Any()).
 					Return(accountDTO, nil).
 					Times(1)
 			},
 		},
 		{
-			name:             "account id not found",
-			isSetAccountID:   false,
-			expectResponse:   map[string]any{"message": "internal server error"},
-			expectCode:       http.StatusInternalServerError,
-			setMockSessionUC: func(context.Context, *usecase.MockSessionUsecase) {},
+			name:                  "account id not found",
+			hasAccountIDInContext: false,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusInternalServerError,
+			setMockSessionUC:      func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:           "authorize faild",
-			isSetAccountID: true,
-			expectResponse: map[string]any{"message": "unauthorized"},
-			expectCode:     http.StatusUnauthorized,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			name:                  "unauthorized",
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusUnauthorized,
+			expectResponse:        []byte(`{"message":"unauthorized"}`),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authorize(ctx, gomock.Any()).
+					Authorize(gomock.Any(), gomock.Any()).
 					Return(nil, status.ErrUnauthorized).
+					Times(1)
+			},
+		},
+		{
+			name:                  "authorize faild",
+			hasAccountIDInContext: true,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusInternalServerError,
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
+				sessionUC.
+					EXPECT().
+					Authorize(gomock.Any(), gomock.Any()).
+					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -258,7 +285,7 @@ func TestSession_Authorize(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.isSetAccountID {
+			if tt.hasAccountIDInContext {
 				c.Set("accountID", uuid.New())
 			}
 
@@ -266,7 +293,7 @@ func TestSession_Authorize(t *testing.T) {
 			defer ctrl.Finish()
 
 			sessionUC := usecase.NewMockSessionUsecase(ctrl)
-			tt.setMockSessionUC(ctx, sessionUC)
+			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
 			hdl.Authorize(c)
@@ -277,11 +304,7 @@ func TestSession_Authorize(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-				t.Error(err)
-			}
-			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
 				t.Error(diff)
 			}
 		})

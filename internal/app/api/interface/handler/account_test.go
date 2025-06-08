@@ -3,7 +3,8 @@ package handler_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,16 +31,16 @@ func TestAccount_Create(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		requestJSON      []byte
+		requestBody      []byte
 		expectCode       int
-		expectResponse   map[string]any
+		expectResponse   []byte
 		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
 	}{
 		{
-			name:           "success",
-			requestJSON:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
+			name:           "successfully created",
+			requestBody:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
 			expectCode:     http.StatusCreated,
-			expectResponse: map[string]any{"name": "name"},
+			expectResponse: fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -50,16 +51,16 @@ func TestAccount_Create(t *testing.T) {
 		},
 		{
 			name:             "invalid request",
-			requestJSON:      nil,
+			requestBody:      nil,
 			expectCode:       http.StatusBadRequest,
-			expectResponse:   map[string]any{"message": "bad request"},
+			expectResponse:   []byte(`{"message":"bad request"}`),
 			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
 			name:           "create error",
-			requestJSON:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
+			requestBody:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
 			expectCode:     http.StatusConflict,
-			expectResponse: map[string]any{"message": "conflict"},
+			expectResponse: []byte(`{"message":"conflict"}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -76,7 +77,7 @@ func TestAccount_Create(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/accounts", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/accounts", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
@@ -96,11 +97,7 @@ func TestAccount_Create(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-				t.Error(err)
-			}
-			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -117,19 +114,19 @@ func TestAccount_UpdateName(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		requestJSON      []byte
-		isSetAccountID   bool
-		expectCode       int
-		expectResponse   map[string]any
-		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
+		name                  string
+		requestBody           []byte
+		hasAccountIDInContext bool
+		expectCode            int
+		expectResponse        []byte
+		setMockAccountUC      func(context.Context, *usecase.MockAccountUsecase)
 	}{
 		{
-			name:           "success",
-			requestJSON:    []byte(`{"password": "password", "name": "name"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusOK,
-			expectResponse: map[string]any{"name": "name"},
+			name:                  "successfully updated",
+			requestBody:           []byte(`{"password": "password", "name": "name"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusOK,
+			expectResponse:        fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -139,27 +136,27 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
-			name:             "invalid request",
-			requestJSON:      nil,
-			isSetAccountID:   true,
-			expectCode:       http.StatusBadRequest,
-			expectResponse:   map[string]any{"message": "bad request"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "invalid request",
+			requestBody:           nil,
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusBadRequest,
+			expectResponse:        []byte(`{"message":"bad request"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:             "account id not found",
-			requestJSON:      []byte(`{"name": "name"}`),
-			isSetAccountID:   false,
-			expectCode:       http.StatusInternalServerError,
-			expectResponse:   map[string]any{"message": "internal server error"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "account id not set",
+			requestBody:           []byte(`{"name": "name"}`),
+			hasAccountIDInContext: false,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:           "update error",
-			requestJSON:    []byte(`{"password": "password", "name": "name"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusConflict,
-			expectResponse: map[string]any{"message": "conflict"},
+			name:                  "update error",
+			requestBody:           []byte(`{"password": "password", "name": "name"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusConflict,
+			expectResponse:        []byte(`{"message":"conflict"}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -176,11 +173,11 @@ func TestAccount_UpdateName(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "PUT", "/accounts/name", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "PUT", "/accounts/name", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.isSetAccountID {
+			if tt.hasAccountIDInContext {
 				c.Set("accountID", uuid.New())
 			}
 
@@ -199,11 +196,7 @@ func TestAccount_UpdateName(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-				t.Error(err)
-			}
-			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -220,19 +213,19 @@ func TestAccount_UpdatePassword(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		requestJSON      []byte
-		isSetAccountID   bool
-		expectCode       int
-		expectResponse   map[string]any
-		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
+		name                  string
+		requestBody           []byte
+		hasAccountIDInContext bool
+		expectCode            int
+		expectResponse        []byte
+		setMockAccountUC      func(context.Context, *usecase.MockAccountUsecase)
 	}{
 		{
-			name:           "success",
-			requestJSON:    []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusOK,
-			expectResponse: map[string]any{"name": "name"},
+			name:                  "successfully updated",
+			requestBody:           []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusOK,
+			expectResponse:        fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -242,32 +235,32 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			},
 		},
 		{
-			name:             "invalid request",
-			requestJSON:      nil,
-			isSetAccountID:   true,
-			expectCode:       http.StatusBadRequest,
-			expectResponse:   map[string]any{"message": "bad request"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "invalid request",
+			requestBody:           nil,
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusBadRequest,
+			expectResponse:        []byte(`{"message":"bad request"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:             "account id not found",
-			requestJSON:      []byte(`{"password": "password", "confirm_password": "password"}`),
-			isSetAccountID:   false,
-			expectCode:       http.StatusInternalServerError,
-			expectResponse:   map[string]any{"message": "internal server error"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "account id not set",
+			requestBody:           []byte(`{"password": "password", "confirm_password": "password"}`),
+			hasAccountIDInContext: false,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:           "update error",
-			requestJSON:    []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusUnauthorized,
-			expectResponse: map[string]any{"message": "unauthorized"},
+			name:                  "update error",
+			requestBody:           []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrUnauthorized).
+					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -279,11 +272,11 @@ func TestAccount_UpdatePassword(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "PUT", "/accounts/password", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "PUT", "/accounts/password", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.isSetAccountID {
+			if tt.hasAccountIDInContext {
 				c.Set("accountID", uuid.New())
 			}
 
@@ -302,11 +295,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			var response map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-				t.Error(err)
-			}
-			if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -317,19 +306,19 @@ func TestAccount_Delete(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name             string
-		requestJSON      []byte
-		isSetAccountID   bool
-		expectCode       int
-		expectResponse   map[string]any
-		setMockAccountUC func(context.Context, *usecase.MockAccountUsecase)
+		name                  string
+		requestBody           []byte
+		hasAccountIDInContext bool
+		expectCode            int
+		expectResponse        []byte
+		setMockAccountUC      func(context.Context, *usecase.MockAccountUsecase)
 	}{
 		{
-			name:           "success",
-			requestJSON:    []byte(`{"password": "password"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusNoContent,
-			expectResponse: nil,
+			name:                  "successfully deleted",
+			requestBody:           []byte(`{"password": "password"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusNoContent,
+			expectResponse:        nil,
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
@@ -339,32 +328,32 @@ func TestAccount_Delete(t *testing.T) {
 			},
 		},
 		{
-			name:             "invalid request",
-			requestJSON:      nil,
-			isSetAccountID:   true,
-			expectCode:       http.StatusBadRequest,
-			expectResponse:   map[string]any{"message": "bad request"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "invalid request",
+			requestBody:           nil,
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusBadRequest,
+			expectResponse:        []byte(`{"message":"bad request"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:             "account id not found",
-			requestJSON:      []byte(`{"password": "password"}`),
-			isSetAccountID:   false,
-			expectCode:       http.StatusInternalServerError,
-			expectResponse:   map[string]any{"message": "internal server error"},
-			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
+			name:                  "account id not found",
+			requestBody:           []byte(`{"password": "password"}`),
+			hasAccountIDInContext: false,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
+			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:           "delete error",
-			requestJSON:    []byte(`{"password": "password"}`),
-			isSetAccountID: true,
-			expectCode:     http.StatusUnauthorized,
-			expectResponse: map[string]any{"message": "unauthorized"},
+			name:                  "delete error",
+			requestBody:           []byte(`{"password": "password"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"message":"internal server error"}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					Delete(ctx, gomock.Any(), gomock.Any()).
-					Return(status.ErrUnauthorized).
+					Return(sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -376,11 +365,11 @@ func TestAccount_Delete(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/accounts", bytes.NewBuffer(tt.requestJSON))
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/accounts", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.isSetAccountID {
+			if tt.hasAccountIDInContext {
 				c.Set("accountID", uuid.New())
 			}
 
@@ -399,16 +388,8 @@ func TestAccount_Delete(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectCode, w.Code)
 			}
 
-			if w.Body.Bytes() != nil {
-				var response map[string]any
-				if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-					t.Error(err)
-				}
-				if diff := cmp.Diff(response, tt.expectResponse); diff != "" {
-					t.Error(diff)
-				}
-			} else if tt.expectResponse != nil {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectResponse, w.Body.Bytes())
+			if diff := cmp.Diff(tt.expectResponse, w.Body.Bytes()); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}

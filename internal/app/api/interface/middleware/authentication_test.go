@@ -1,7 +1,7 @@
 package middleware_test
 
 import (
-	"context"
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,35 +29,39 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		name                string
 		authorizationHeader string
 		expectResult        uuid.UUID
-		setMockSessionUC    func(context.Context, *usecase.MockSessionUsecase)
+		expectError         []byte
+		setMockSessionUC    func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:                "success",
+			name:                "session token is set",
 			authorizationHeader: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult:        accountDTO.ID,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			expectError:         nil,
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authenticate(ctx, gomock.Any()).
+					Authenticate(gomock.Any(), gomock.Any()).
 					Return(accountDTO, nil).
 					Times(1)
 			},
 		},
 		{
-			name:                "invalid authorization header",
+			name:                "session token not set",
 			authorizationHeader: "",
 			expectResult:        uuid.Nil,
-			setMockSessionUC:    func(context.Context, *usecase.MockSessionUsecase) {},
+			expectError:         []byte(`{"message":"unauthorized"}`),
+			setMockSessionUC:    func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:                "account not found",
+			name:                "authorize error",
 			authorizationHeader: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult:        uuid.Nil,
-			setMockSessionUC: func(ctx context.Context, sessionUC *usecase.MockSessionUsecase) {
+			expectError:         []byte(`{"message":"internal server error"}`),
+			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authenticate(ctx, gomock.Any()).
-					Return(nil, nil).
+					Authenticate(gomock.Any(), gomock.Any()).
+					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
 		},
@@ -79,19 +83,19 @@ func TestAuthentication_Authenticate(t *testing.T) {
 			defer ctrl.Finish()
 
 			sessionUC := usecase.NewMockSessionUsecase(ctrl)
-			tt.setMockSessionUC(ctx, sessionUC)
+			tt.setMockSessionUC(sessionUC)
 
 			mw := middleware.NewAuthenticationMiddleware(sessionUC)
 			mw.Authenticate(c)
 
-			accountID, exists := c.Get("accountID")
-			if exists && tt.expectResult == uuid.Nil {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectResult, accountID)
-			} else {
-				result, _ := accountID.(uuid.UUID)
-				if diff := cmp.Diff(result, tt.expectResult); diff != "" {
-					t.Error(diff)
-				}
+			accountID, _ := c.Get("accountID")
+			result, _ := accountID.(uuid.UUID)
+			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+				t.Error(diff)
+			}
+
+			if diff := cmp.Diff(tt.expectError, w.Body.Bytes()); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}
