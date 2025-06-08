@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"testing"
@@ -26,16 +25,16 @@ func TestAccount_Exists(t *testing.T) {
 		name               string
 		inputAccount       *entity.Account
 		expectError        error
-		setMockAccountRepo func(context.Context, *repository.MockAccountRepository)
+		setMockAccountRepo func(*repository.MockAccountRepository)
 	}{
 		{
 			name:         "not exists",
 			inputAccount: account,
 			expectError:  nil,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByNameIncludingDeleted(ctx, account.Name).
+					FindOneByNameIncludingDeleted(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
@@ -44,10 +43,10 @@ func TestAccount_Exists(t *testing.T) {
 			name:         "exists",
 			inputAccount: account,
 			expectError:  status.ErrConflict,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByNameIncludingDeleted(ctx, account.Name).
+					FindOneByNameIncludingDeleted(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -56,10 +55,10 @@ func TestAccount_Exists(t *testing.T) {
 			name:         "find error",
 			inputAccount: account,
 			expectError:  sql.ErrConnDone,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByNameIncludingDeleted(ctx, account.Name).
+					FindOneByNameIncludingDeleted(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -73,7 +72,7 @@ func TestAccount_Exists(t *testing.T) {
 			ctx := t.Context()
 
 			accountRepo := repository.NewMockAccountRepository(ctrl)
-			tt.setMockAccountRepo(ctx, accountRepo)
+			tt.setMockAccountRepo(accountRepo)
 
 			serv := service.NewAccountService(accountRepo)
 			if err := serv.Exists(ctx, tt.inputAccount); !errors.Is(err, tt.expectError) {

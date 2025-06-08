@@ -23,7 +23,7 @@ func TestNewSession(t *testing.T) {
 		inputAccount *entity.Account
 		expectError  error
 	}{
-		{name: "success", inputAccount: account, expectError: nil},
+		{name: "successfully initialized", inputAccount: account, expectError: nil},
 		{name: "account is nil", inputAccount: nil, expectError: status.ErrInternal},
 	}
 	for _, tt := range tests {
@@ -62,11 +62,22 @@ func TestSession_GenerateToken(t *testing.T) {
 	tests := []struct {
 		name        string
 		expectError error
-	}{}
+	}{
+		{name: "successfully generated", expectError: nil},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			old := session.Token
+
 			if err := session.GenerateToken(); !errors.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if session.Token == old {
+				t.Error("token has not been updated")
+			}
+			if len(session.Token) != 32 {
+				t.Error("invalid token")
 			}
 		})
 	}
