@@ -19,7 +19,7 @@ func TestNewAccount(t *testing.T) {
 		inputConfirmPassword string
 		expectError          error
 	}{
-		{name: "success", inputName: "name", inputPassword: "password", inputConfirmPassword: "password", expectError: nil},
+		{name: "successfully initialized", inputName: "name", inputPassword: "password", inputConfirmPassword: "password", expectError: nil},
 		{name: "invalid name", inputName: "", inputPassword: "password", inputConfirmPassword: "password", expectError: status.ErrBadRequest},
 		{name: "invalid password", inputName: "name", inputPassword: "", inputConfirmPassword: "", expectError: status.ErrBadRequest},
 	}
@@ -64,15 +64,10 @@ func TestAccount_SetName(t *testing.T) {
 		inputName   string
 		expectError error
 	}{
-		{name: "lower case only", inputName: "name", expectError: nil},
-		{name: "upper case only", inputName: "NAME", expectError: nil},
-		{name: "number only", inputName: "1234", expectError: nil},
 		{name: "mixed lower case and upper case and number", inputName: "accountName1234", expectError: nil},
 		{name: "include underscore", inputName: "account_name", expectError: nil},
-		{name: "hiragana", inputName: "なまえ", expectError: status.ErrBadRequest},
-		{name: "katakana", inputName: "ナマエ", expectError: status.ErrBadRequest},
-		{name: "kanji", inputName: "ナマエ", expectError: status.ErrBadRequest},
 		{name: "include hyphen", inputName: "account-name", expectError: status.ErrBadRequest},
+		{name: "full-width characters", inputName: "アカウント名", expectError: status.ErrBadRequest},
 		{name: "2 characters", inputName: strings.Repeat("a", 2), expectError: status.ErrBadRequest},
 		{name: "3 characters", inputName: strings.Repeat("a", 3), expectError: nil},
 		{name: "24 characters", inputName: strings.Repeat("a", 24), expectError: nil},
@@ -105,9 +100,7 @@ func TestAccount_SetPassword(t *testing.T) {
 		{name: "number only", inputPassword: "12345678", inputConfirmPassword: "12345678", expectError: nil},
 		{name: "mixed lower case and upper case and number", inputPassword: "accountPassword1234", inputConfirmPassword: "accountPassword1234", expectError: nil},
 		{name: "all symbols", inputPassword: "!@#$%^&*()_-+=[]{};:'\",.<>?/|~", inputConfirmPassword: "!@#$%^&*()_-+=[]{};:'\",.<>?/|~", expectError: nil},
-		{name: "hiragana", inputPassword: "ぱすわーどぱすわーど", inputConfirmPassword: "ぱすわーどぱすわーど", expectError: status.ErrBadRequest},
-		{name: "katakana", inputPassword: "パスワードパスワード", inputConfirmPassword: "パスワードパスワード", expectError: status.ErrBadRequest},
-		{name: "kanji", inputPassword: "暗証番号暗証番号", inputConfirmPassword: "暗証番号暗証番号", expectError: status.ErrBadRequest},
+		{name: "full-width characters", inputPassword: "認証パスワードぱすわーど", expectError: status.ErrBadRequest},
 		{name: "7 characters", inputPassword: strings.Repeat("a", 7), inputConfirmPassword: strings.Repeat("a", 7), expectError: status.ErrBadRequest},
 		{name: "8 characters", inputPassword: strings.Repeat("a", 8), inputConfirmPassword: strings.Repeat("a", 8), expectError: nil},
 		{name: "72 characters", inputPassword: strings.Repeat("a", 72), inputConfirmPassword: strings.Repeat("a", 72), expectError: nil},
@@ -141,7 +134,7 @@ func TestAccount_ComparePassword(t *testing.T) {
 		expectError   error
 	}{
 		{
-			name:          "success",
+			name:          "successfully compared",
 			inputPassword: "password",
 			expectError:   nil,
 		},

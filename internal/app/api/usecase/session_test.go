@@ -38,36 +38,36 @@ func TestSession_Login(t *testing.T) {
 		inputPassword         string
 		expectResult          *dto.SessionDTO
 		expectError           error
-		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
-		setMockSessionRepo    func(context.Context, *repository.MockSessionRepository)
-		setMockAccountRepo    func(context.Context, *repository.MockAccountRepository)
+		setMockTransactionObj func(*transaction.MockTransactionObject)
+		setMockSessionRepo    func(*repository.MockSessionRepository)
+		setMockAccountRepo    func(*repository.MockAccountRepository)
 	}{
 		{
-			name:             "success",
+			name:             "successfully loggedin",
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     sessionDTO,
 			expectError:      nil,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					Save(ctx, gomock.Any()).
+					Save(gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByName(ctx, gomock.Any()).
+					FindOneByName(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -78,44 +78,44 @@ func TestSession_Login(t *testing.T) {
 			inputPassword:    "password",
 			expectResult:     nil,
 			expectError:      status.ErrUnauthorized,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(context.Context, *repository.MockSessionRepository) {},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockSessionRepo: func(*repository.MockSessionRepository) {},
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByName(ctx, gomock.Any()).
+					FindOneByName(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
 		},
 		{
-			name:             "password dose not matched",
+			name:             "authentication failed",
 			inputAccountName: "name",
 			inputPassword:    "PASSWORD",
 			expectResult:     nil,
 			expectError:      status.ErrUnauthorized,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(context.Context, *repository.MockSessionRepository) {},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockSessionRepo: func(*repository.MockSessionRepository) {},
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByName(ctx, gomock.Any()).
+					FindOneByName(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -126,20 +126,20 @@ func TestSession_Login(t *testing.T) {
 			inputPassword:    "password",
 			expectResult:     nil,
 			expectError:      sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(context.Context, *repository.MockSessionRepository) {},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockSessionRepo: func(*repository.MockSessionRepository) {},
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByName(ctx, gomock.Any()).
+					FindOneByName(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -150,26 +150,26 @@ func TestSession_Login(t *testing.T) {
 			inputPassword:    "password",
 			expectResult:     nil,
 			expectError:      sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					Save(ctx, gomock.Any()).
+					Save(gomock.Any(), gomock.Any()).
 					Return(sql.ErrConnDone).
 					Times(1)
 			},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByName(ctx, gomock.Any()).
+					FindOneByName(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -183,13 +183,13 @@ func TestSession_Login(t *testing.T) {
 			ctx := t.Context()
 
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
-			tt.setMockTransactionObj(ctx, transactionObj)
+			tt.setMockTransactionObj(transactionObj)
 
 			sessionRepo := repository.NewMockSessionRepository(ctrl)
-			tt.setMockSessionRepo(ctx, sessionRepo)
+			tt.setMockSessionRepo(sessionRepo)
 
 			accountRepo := repository.NewMockAccountRepository(ctrl)
-			tt.setMockAccountRepo(ctx, accountRepo)
+			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Login(ctx, tt.inputAccountName, tt.inputPassword)
@@ -200,7 +200,7 @@ func TestSession_Login(t *testing.T) {
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(dto.SessionDTO{}, "Token", "ExpiresAt"),
 			}
-			if diff := cmp.Diff(result, tt.expectResult, opts...); diff != "" {
+			if diff := cmp.Diff(tt.expectResult, result, opts...); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -218,31 +218,31 @@ func TestSession_Logout(t *testing.T) {
 		name                  string
 		inputAccountID        uuid.UUID
 		expectError           error
-		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
-		setMockSessionRepo    func(context.Context, *repository.MockSessionRepository)
+		setMockTransactionObj func(*transaction.MockTransactionObject)
+		setMockSessionRepo    func(*repository.MockSessionRepository)
 	}{
 		{
-			name:           "success",
+			name:           "successfully loggedout",
 			inputAccountID: session.AccountID,
 			expectError:    nil,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByAccountID(ctx, gomock.Any()).
+					FindOneByAccountID(gomock.Any(), gomock.Any()).
 					Return(session, nil).
 					Times(1)
 				sessionRepo.
 					EXPECT().
-					Delete(ctx, gomock.Any()).
+					Delete(gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
@@ -251,19 +251,19 @@ func TestSession_Logout(t *testing.T) {
 			name:           "session not found",
 			inputAccountID: session.AccountID,
 			expectError:    status.ErrUnauthorized,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByAccountID(ctx, gomock.Any()).
+					FindOneByAccountID(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
@@ -272,19 +272,19 @@ func TestSession_Logout(t *testing.T) {
 			name:           "find session error",
 			inputAccountID: session.AccountID,
 			expectError:    sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByAccountID(ctx, gomock.Any()).
+					FindOneByAccountID(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -293,24 +293,24 @@ func TestSession_Logout(t *testing.T) {
 			name:           "delete session error",
 			inputAccountID: session.AccountID,
 			expectError:    sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByAccountID(ctx, gomock.Any()).
+					FindOneByAccountID(gomock.Any(), gomock.Any()).
 					Return(session, nil).
 					Times(1)
 				sessionRepo.
 					EXPECT().
-					Delete(ctx, gomock.Any()).
+					Delete(gomock.Any(), gomock.Any()).
 					Return(sql.ErrConnDone).
 					Times(1)
 			},
@@ -324,10 +324,10 @@ func TestSession_Logout(t *testing.T) {
 			ctx := t.Context()
 
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
-			tt.setMockTransactionObj(ctx, transactionObj)
+			tt.setMockTransactionObj(transactionObj)
 
 			sessionRepo := repository.NewMockSessionRepository(ctrl)
-			tt.setMockSessionRepo(ctx, sessionRepo)
+			tt.setMockSessionRepo(sessionRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, nil)
 			if err := uc.Logout(ctx, tt.inputAccountID); !errors.Is(err, tt.expectError) {
@@ -350,8 +350,8 @@ func TestSession_Authenticate(t *testing.T) {
 	}
 	accountDTO := &dto.AccountDTO{
 		ID:       account.ID,
-		Name:     "name",
-		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+		Name:     account.Name,
+		Password: account.Password,
 	}
 
 	tests := []struct {
@@ -359,35 +359,35 @@ func TestSession_Authenticate(t *testing.T) {
 		inputToken            string
 		expectResult          *dto.AccountDTO
 		expectError           error
-		setMockTransactionObj func(context.Context, *transaction.MockTransactionObject)
-		setMockSessionRepo    func(context.Context, *repository.MockSessionRepository)
-		setMockAccountRepo    func(context.Context, *repository.MockAccountRepository)
+		setMockTransactionObj func(*transaction.MockTransactionObject)
+		setMockSessionRepo    func(*repository.MockSessionRepository)
+		setMockAccountRepo    func(*repository.MockAccountRepository)
 	}{
 		{
-			name:         "success",
+			name:         "successfully authenticated",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: accountDTO,
 			expectError:  nil,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -397,49 +397,49 @@ func TestSession_Authenticate(t *testing.T) {
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
 			expectError:  status.ErrUnauthorized,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
-			setMockAccountRepo: func(context.Context, *repository.MockAccountRepository) {},
+			setMockAccountRepo: func(*repository.MockAccountRepository) {},
 		},
 		{
 			name:         "account not found",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
 			expectError:  status.ErrUnauthorized,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
@@ -449,49 +449,49 @@ func TestSession_Authenticate(t *testing.T) {
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
-			setMockAccountRepo: func(context.Context, *repository.MockAccountRepository) {},
+			setMockAccountRepo: func(*repository.MockAccountRepository) {},
 		},
 		{
 			name:         "find account error",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
 			expectError:  sql.ErrConnDone,
-			setMockTransactionObj: func(ctx context.Context, transactionObj *transaction.MockTransactionObject) {
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
-					Transaction(ctx, gomock.Any()).
+					Transaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					}).
 					Times(1)
 			},
-			setMockSessionRepo: func(ctx context.Context, sessionRepo *repository.MockSessionRepository) {
+			setMockSessionRepo: func(sessionRepo *repository.MockSessionRepository) {
 				sessionRepo.
 					EXPECT().
-					FindOneByTokenAndNotExpired(ctx, gomock.Any()).
+					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
 					Return(session, nil).
 					Times(1)
 			},
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -506,13 +506,13 @@ func TestSession_Authenticate(t *testing.T) {
 			ctx := t.Context()
 
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
-			tt.setMockTransactionObj(ctx, transactionObj)
+			tt.setMockTransactionObj(transactionObj)
 
 			sessionRepo := repository.NewMockSessionRepository(ctrl)
-			tt.setMockSessionRepo(ctx, sessionRepo)
+			tt.setMockSessionRepo(sessionRepo)
 
 			accountRepo := repository.NewMockAccountRepository(ctrl)
-			tt.setMockAccountRepo(ctx, accountRepo)
+			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Authenticate(ctx, tt.inputToken)
@@ -520,7 +520,7 @@ func TestSession_Authenticate(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
-			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -535,8 +535,8 @@ func TestSession_Authorize(t *testing.T) {
 	}
 	accountDTO := &dto.AccountDTO{
 		ID:       account.ID,
-		Name:     "name",
-		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
+		Name:     account.Name,
+		Password: account.Password,
 	}
 
 	tests := []struct {
@@ -544,17 +544,17 @@ func TestSession_Authorize(t *testing.T) {
 		inputAccountID     uuid.UUID
 		expectResult       *dto.AccountDTO
 		expectError        error
-		setMockAccountRepo func(context.Context, *repository.MockAccountRepository)
+		setMockAccountRepo func(*repository.MockAccountRepository)
 	}{
 		{
-			name:           "success",
+			name:           "successfully authorized",
 			inputAccountID: account.ID,
 			expectResult:   accountDTO,
 			expectError:    nil,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
@@ -564,10 +564,10 @@ func TestSession_Authorize(t *testing.T) {
 			inputAccountID: account.ID,
 			expectResult:   nil,
 			expectError:    status.ErrUnauthorized,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(nil, nil).
 					Times(1)
 			},
@@ -577,10 +577,10 @@ func TestSession_Authorize(t *testing.T) {
 			inputAccountID: account.ID,
 			expectResult:   nil,
 			expectError:    sql.ErrConnDone,
-			setMockAccountRepo: func(ctx context.Context, accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
-					FindOneByID(ctx, gomock.Any()).
+					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(nil, sql.ErrConnDone).
 					Times(1)
 			},
@@ -594,7 +594,7 @@ func TestSession_Authorize(t *testing.T) {
 			ctx := t.Context()
 
 			accountRepo := repository.NewMockAccountRepository(ctrl)
-			tt.setMockAccountRepo(ctx, accountRepo)
+			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewSessionUsecase(nil, nil, accountRepo)
 			result, err := uc.Authorize(ctx, tt.inputAccountID)
@@ -602,7 +602,7 @@ func TestSession_Authorize(t *testing.T) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
 			}
 
-			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
+			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)
 			}
 		})

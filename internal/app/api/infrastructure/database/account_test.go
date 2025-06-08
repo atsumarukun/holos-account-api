@@ -30,7 +30,7 @@ func TestAccount_Create(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully inserted",
 			inputAccount: account,
 			expectError:  nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
@@ -91,7 +91,7 @@ func TestAccount_Update(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully updated",
 			inputAccount: account,
 			expectError:  nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
@@ -152,7 +152,7 @@ func TestAccount_Delete(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully deleted",
 			inputAccount: account,
 			expectError:  nil,
 			setMockDB: func(mock sqlmock.Sqlmock) {
@@ -214,7 +214,7 @@ func TestAccount_FindOneByID(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully found",
 			inputID:      account.ID,
 			expectResult: account,
 			expectError:  nil,
@@ -289,7 +289,7 @@ func TestAccount_FindOneByName(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully found",
 			inputName:    "name",
 			expectResult: account,
 			expectError:  nil,
@@ -364,7 +364,7 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 		setMockDB    func(mock sqlmock.Sqlmock)
 	}{
 		{
-			name:         "success",
+			name:         "successfully found",
 			inputName:    "name",
 			expectResult: account,
 			expectError:  nil,
