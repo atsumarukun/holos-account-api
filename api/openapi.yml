@@ -18,7 +18,7 @@ paths:
         - "health"
       responses:
         204:
-          $ref: "#/components/responses/204"
+          $ref: "#/components/responses/no_content"
   /accounts:
     post:
       summary: "アカウント作成"
@@ -30,11 +30,13 @@ paths:
         201:
           $ref: "#/components/responses/create_account"
         400:
-          $ref: "#/components/responses/400"
+          $ref: "#/components/responses/bad_request"
         409:
-          $ref: "#/components/responses/409"
+          $ref: "#/components/responses/duplicate"
+        422:
+          $ref: "#/components/responses/invalid_input"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
     delete:
       summary: "アカウント削除"
       tags:
@@ -48,18 +50,18 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "Session token"
       requestBody:
         $ref: "#/components/requestBodies/delete_account"
       responses:
         204:
-          $ref: "#/components/responses/204"
+          $ref: "#/components/responses/no_content"
         400:
-          $ref: "#/components/responses/400"
+          $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
   /accounts/name:
     patch:
       summary: "アカウント名更新"
@@ -74,20 +76,24 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "Session token"
       requestBody:
         $ref: "#/components/requestBodies/update_account_name"
       responses:
         201:
           $ref: "#/components/responses/update_account_name"
         400:
-          $ref: "#/components/responses/400"
+          $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
+        404:
+          $ref: "#/components/responses/not_found"
         409:
-          $ref: "#/components/responses/409"
+          $ref: "#/components/responses/duplicate"
+        422:
+          $ref: "#/components/responses/invalid_input"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
   /accounts/password:
     patch:
       summary: "パスワード更新"
@@ -102,18 +108,22 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "Session token"
       requestBody:
         $ref: "#/components/requestBodies/update_account_password"
       responses:
         201:
           $ref: "#/components/responses/update_account_password"
         400:
-          $ref: "#/components/responses/400"
+          $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
+        404:
+          $ref: "#/components/responses/not_found"
+        422:
+          $ref: "#/components/responses/invalid_input"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
   /login:
     post:
       summary: "ログイン"
@@ -125,11 +135,11 @@ paths:
         200:
           $ref: "#/components/responses/login"
         400:
-          $ref: "#/components/responses/400"
+          $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
   /logout:
     delete:
       summary: "ログアウト"
@@ -144,14 +154,14 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "Session token"
       responses:
         204:
-          $ref: "#/components/responses/204"
+          $ref: "#/components/responses/no_content"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
   /authorization:
     get:
       summary: "認可"
@@ -166,14 +176,14 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "Session token"
       responses:
         200:
           $ref: "#/components/responses/authorization"
         401:
-          $ref: "#/components/responses/401"
+          $ref: "#/components/responses/unauthorized"
         500:
-          $ref: "#/components/responses/500"
+          $ref: "#/components/responses/internal_server_error"
 
 components:
   securitySchemes:
@@ -187,7 +197,7 @@ components:
       properties:
         id:
           type: "string"
-          example: "397bde64-8042-4e38-bca0-a4ba9f4f0e5f"
+          example: "id"
           readOnly: true
         name:
           type: "string"
@@ -221,7 +231,7 @@ components:
       properties:
         token:
           type: "string"
-          example: "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
+          example: "token"
           readOnly: true
 
   requestBodies:
@@ -322,45 +332,101 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/account"
-    204:
+    no_content:
       description: "Success"
-    400:
+    bad_request:
       description: "Bad Request"
       content:
         text/plain:
           schema:
             type: "object"
             properties:
-              message:
-                type: "string"
-                example: "bad request"
-    401:
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "BAD_REQUEST"
+                  message:
+                    type: "string"
+                    example: "bad request"
+    unauthorized:
       description: "Unauthorized"
       content:
         text/plain:
           schema:
             type: "object"
             properties:
-              message:
-                type: "string"
-                example: "unauthorized"
-    409:
-      description: "Conflict"
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "UNAUTHORIZED"
+                  message:
+                    type: "string"
+                    example: "unauthorized"
+    not_found:
+      description: "Not Found"
       content:
         text/plain:
           schema:
             type: "object"
             properties:
-              message:
-                type: "string"
-                example: "conflict"
-    500:
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "NOT_FOUND"
+                  message:
+                    type: "string"
+                    example: "not found"
+    duplicate:
+      description: "Duplicate"
+      content:
+        text/plain:
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "DUPLICATE"
+                  message:
+                    type: "string"
+                    example: "duplicate"
+    invalid_input:
+      description: "Invalid Input"
+      content:
+        text/plain:
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "INVALID_INPUT"
+                  message:
+                    type: "string"
+                    example: "invalid input"
+    internal_server_error:
       description: "Internal Server Error"
       content:
         text/plain:
           schema:
             type: "object"
             properties:
-              message:
-                type: "string"
-                example: "internal server error"
+              error:
+                type: "object"
+                properties:
+                  code:
+                    type: "string"
+                    example: "INTERNAL_SERVER_ERROR"
+                  message:
+                    type: "string"
+                    example: "internal server error"
