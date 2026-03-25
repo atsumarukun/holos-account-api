@@ -20,8 +20,8 @@ func TestNewAccount(t *testing.T) {
 		expectError          error
 	}{
 		{name: "successfully initialized", inputName: "name", inputPassword: "password", inputConfirmPassword: "password", expectError: nil},
-		{name: "invalid name", inputName: "", inputPassword: "password", inputConfirmPassword: "password", expectError: status.ErrBadRequest},
-		{name: "invalid password", inputName: "name", inputPassword: "", inputConfirmPassword: "", expectError: status.ErrBadRequest},
+		{name: "invalid name", inputName: "", inputPassword: "password", inputConfirmPassword: "password", expectError: status.ErrUnprocessableContent},
+		{name: "invalid password", inputName: "name", inputPassword: "", inputConfirmPassword: "", expectError: status.ErrUnprocessableContent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -66,12 +66,12 @@ func TestAccount_SetName(t *testing.T) {
 	}{
 		{name: "mixed lower case and upper case and number", inputName: "accountName1234", expectError: nil},
 		{name: "include underscore", inputName: "account_name", expectError: nil},
-		{name: "include hyphen", inputName: "account-name", expectError: status.ErrBadRequest},
-		{name: "full-width characters", inputName: "アカウント名", expectError: status.ErrBadRequest},
-		{name: "2 characters", inputName: strings.Repeat("a", 2), expectError: status.ErrBadRequest},
+		{name: "include hyphen", inputName: "account-name", expectError: status.ErrUnprocessableContent},
+		{name: "full-width characters", inputName: "アカウント名", expectError: status.ErrUnprocessableContent},
+		{name: "2 characters", inputName: strings.Repeat("a", 2), expectError: status.ErrUnprocessableContent},
 		{name: "3 characters", inputName: strings.Repeat("a", 3), expectError: nil},
 		{name: "24 characters", inputName: strings.Repeat("a", 24), expectError: nil},
-		{name: "25 characters", inputName: strings.Repeat("a", 25), expectError: status.ErrBadRequest},
+		{name: "25 characters", inputName: strings.Repeat("a", 25), expectError: status.ErrUnprocessableContent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -100,12 +100,12 @@ func TestAccount_SetPassword(t *testing.T) {
 		{name: "number only", inputPassword: "12345678", inputConfirmPassword: "12345678", expectError: nil},
 		{name: "mixed lower case and upper case and number", inputPassword: "accountPassword1234", inputConfirmPassword: "accountPassword1234", expectError: nil},
 		{name: "all symbols", inputPassword: "!@#$%^&*()_-+=[]{};:'\",.<>?/|~", inputConfirmPassword: "!@#$%^&*()_-+=[]{};:'\",.<>?/|~", expectError: nil},
-		{name: "full-width characters", inputPassword: "認証パスワードぱすわーど", expectError: status.ErrBadRequest},
-		{name: "7 characters", inputPassword: strings.Repeat("a", 7), inputConfirmPassword: strings.Repeat("a", 7), expectError: status.ErrBadRequest},
+		{name: "full-width characters", inputPassword: "認証パスワードぱすわーど", expectError: status.ErrUnprocessableContent},
+		{name: "7 characters", inputPassword: strings.Repeat("a", 7), inputConfirmPassword: strings.Repeat("a", 7), expectError: status.ErrUnprocessableContent},
 		{name: "8 characters", inputPassword: strings.Repeat("a", 8), inputConfirmPassword: strings.Repeat("a", 8), expectError: nil},
 		{name: "72 characters", inputPassword: strings.Repeat("a", 72), inputConfirmPassword: strings.Repeat("a", 72), expectError: nil},
-		{name: "73 characters", inputPassword: strings.Repeat("a", 73), inputConfirmPassword: strings.Repeat("a", 73), expectError: status.ErrBadRequest},
-		{name: "dose not matched", inputPassword: "password", inputConfirmPassword: "PASSWORD", expectError: status.ErrBadRequest},
+		{name: "73 characters", inputPassword: strings.Repeat("a", 73), inputConfirmPassword: strings.Repeat("a", 73), expectError: status.ErrUnprocessableContent},
+		{name: "dose not matched", inputPassword: "password", inputConfirmPassword: "PASSWORD", expectError: status.ErrUnprocessableContent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

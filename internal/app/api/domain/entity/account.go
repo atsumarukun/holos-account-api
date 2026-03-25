@@ -42,12 +42,12 @@ func RestoreAccount(id uuid.UUID, name, password string) *Account {
 
 func (a *Account) SetName(name string) error {
 	if len(name) < 3 || 24 < len(name) {
-		return status.ErrBadRequest
+		return status.ErrUnprocessableContent
 	}
 	if matched, err := regexp.MatchString(`^[A-Za-z0-9_]*$`, name); err != nil {
 		return err
 	} else if !matched {
-		return status.ErrBadRequest
+		return status.ErrUnprocessableContent
 	}
 	a.Name = name
 	return nil
@@ -55,15 +55,15 @@ func (a *Account) SetName(name string) error {
 
 func (a *Account) SetPassword(password, confirmPassword string) error {
 	if password != confirmPassword {
-		return status.ErrBadRequest
+		return status.ErrUnprocessableContent
 	}
 	if len(password) < 8 || 72 < len(password) {
-		return status.ErrBadRequest
+		return status.ErrUnprocessableContent
 	}
 	if matched, err := regexp.MatchString(`^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>?/\\|~]*$`, password); err != nil {
 		return err
 	} else if !matched {
-		return status.ErrBadRequest
+		return status.ErrUnprocessableContent
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
