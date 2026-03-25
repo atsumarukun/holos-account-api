@@ -75,7 +75,7 @@ func TestAccount_Create(t *testing.T) {
 			inputPassword:         "password",
 			inputConfirmPassword:  "password",
 			expectResult:          nil,
-			expectError:           status.ErrBadRequest,
+			expectError:           status.ErrUnprocessableContent,
 			setMockTransactionObj: func(*transaction.MockTransactionObject) {},
 			setMockAccountRepo:    func(*repository.MockAccountRepository) {},
 			setMockAccountServ:    func(*service.MockAccountService) {},
@@ -86,7 +86,7 @@ func TestAccount_Create(t *testing.T) {
 			inputPassword:         "",
 			inputConfirmPassword:  "",
 			expectResult:          nil,
-			expectError:           status.ErrBadRequest,
+			expectError:           status.ErrUnprocessableContent,
 			setMockTransactionObj: func(*transaction.MockTransactionObject) {},
 			setMockAccountRepo:    func(*repository.MockAccountRepository) {},
 			setMockAccountServ:    func(*service.MockAccountService) {},
@@ -295,7 +295,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			inputPassword: "password",
 			inputName:     "",
 			expectResult:  nil,
-			expectError:   status.ErrBadRequest,
+			expectError:   status.ErrUnprocessableContent,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -521,7 +521,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			inputNewPassword:     "",
 			inputConfirmPassword: "",
 			expectResult:         nil,
-			expectError:          status.ErrBadRequest,
+			expectError:          status.ErrUnprocessableContent,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().

@@ -7,8 +7,9 @@ import (
 )
 
 var codes = map[code.StatusCode]int{
-	code.BadRequest:   http.StatusBadRequest,
-	code.Conflict:     http.StatusConflict,
-	code.Unauthorized: http.StatusUnauthorized,
-	code.Internal:     http.StatusInternalServerError,
+	code.BadRequest:           http.StatusBadRequest,
+	code.Conflict:             http.StatusConflict,
+	code.UnprocessableContent: http.StatusUnprocessableEntity,
+	code.Unauthorized:         http.StatusUnauthorized,
+	code.Internal:             http.StatusInternalServerError,
 }
