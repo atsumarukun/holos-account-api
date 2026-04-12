@@ -2,17 +2,18 @@ package database_test
 
 import (
 	"database/sql"
-	"errors"
+	stderr "errors"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	mockDatabase "github.com/atsumarukun/holos-account-api/test/mock/database"
 )
 
@@ -43,7 +44,7 @@ func TestAccount_Create(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrRequiredAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{
@@ -66,8 +67,18 @@ func TestAccount_Create(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBAccountRepository(db)
-			if err := repo.Create(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			err := repo.Create(t.Context(), tt.inputAccount)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -104,7 +115,7 @@ func TestAccount_Update(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrRequiredAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{
@@ -127,8 +138,18 @@ func TestAccount_Update(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBAccountRepository(db)
-			if err := repo.Update(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			err := repo.Update(t.Context(), tt.inputAccount)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -165,7 +186,7 @@ func TestAccount_Delete(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrRequiredAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{
@@ -188,8 +209,18 @@ func TestAccount_Delete(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBAccountRepository(db)
-			if err := repo.Delete(t.Context(), tt.inputAccount); !errors.Is(err, tt.expectError) {
+			err := repo.Delete(t.Context(), tt.inputAccount)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -259,8 +290,17 @@ func TestAccount_FindOneByID(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByID(t.Context(), tt.inputID)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
@@ -334,8 +374,17 @@ func TestAccount_FindOneByName(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByName(t.Context(), tt.inputName)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
@@ -409,8 +458,17 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByNameIncludingDeleted(t.Context(), tt.inputName)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {

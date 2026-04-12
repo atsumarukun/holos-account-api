@@ -3,11 +3,14 @@ package repository
 
 import (
 	"context"
+	stderr "errors"
 
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
+
+var ErrRequiredSession = stderr.New("session is required")
 
 type SessionRepository interface {
 	Save(context.Context, *entity.Session) error

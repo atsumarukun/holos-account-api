@@ -3,11 +3,14 @@ package repository
 
 import (
 	"context"
+	stderr "errors"
 
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
+
+var ErrRequiredAccount = stderr.New("account is required")
 
 type AccountRepository interface {
 	Create(context.Context, *entity.Account) error

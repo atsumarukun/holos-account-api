@@ -1,29 +1,30 @@
 package transformer
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/model"
 )
 
 func ToAccountModel(account *entity.Account) *model.AccountModel {
+	if account == nil {
+		return nil
+	}
+
 	return &model.AccountModel{
-		ID:       account.ID.String(),
+		ID:       account.ID,
 		Name:     account.Name,
 		Password: account.Password,
 	}
 }
 
-func ToAccountEntity(account *model.AccountModel) (*entity.Account, error) {
-	id, err := uuid.Parse(account.ID)
-	if err != nil {
-		return nil, err
+func ToAccountEntity(account *model.AccountModel) *entity.Account {
+	if account == nil {
+		return nil
 	}
 
 	return &entity.Account{
-		ID:       id,
+		ID:       account.ID,
 		Name:     account.Name,
 		Password: account.Password,
-	}, nil
+	}
 }

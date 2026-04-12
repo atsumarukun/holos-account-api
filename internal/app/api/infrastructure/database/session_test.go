@@ -2,18 +2,19 @@ package database_test
 
 import (
 	"database/sql"
-	"errors"
+	stderr "errors"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	mockDatabase "github.com/atsumarukun/holos-account-api/test/mock/database"
 )
 
@@ -44,7 +45,7 @@ func TestSession_Create(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrRequiredSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 
@@ -68,8 +69,18 @@ func TestSession_Create(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBSessionRepository(db)
-			if err := repo.Save(t.Context(), tt.inputSession); !errors.Is(err, tt.expectError) {
+			err := repo.Save(t.Context(), tt.inputSession)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -106,7 +117,7 @@ func TestSession_Delete(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrRequiredSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 
@@ -130,8 +141,18 @@ func TestSession_Delete(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBSessionRepository(db)
-			if err := repo.Delete(t.Context(), tt.inputSession); !errors.Is(err, tt.expectError) {
+			err := repo.Delete(t.Context(), tt.inputSession)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -202,8 +223,17 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 
 			repo := database.NewDBSessionRepository(db)
 			result, err := repo.FindOneByAccountID(t.Context(), tt.inputAccountID)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
@@ -278,8 +308,17 @@ func TestSession_FindOneByTokenAndNotExpired(t *testing.T) {
 
 			repo := database.NewDBSessionRepository(db)
 			result, err := repo.FindOneByTokenAndNotExpired(t.Context(), tt.inputToken)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
