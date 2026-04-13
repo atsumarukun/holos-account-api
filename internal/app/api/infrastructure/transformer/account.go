@@ -22,9 +22,5 @@ func ToAccountEntity(account *model.AccountModel) *entity.Account {
 		return nil
 	}
 
-	return &entity.Account{
-		ID:       account.ID,
-		Name:     account.Name,
-		Password: account.Password,
-	}
+	return entity.RestoreAccount(account.ID, account.Name, account.Password)
 }

@@ -44,7 +44,7 @@ func TestAccount_Create(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  repository.ErrRequiredAccount,
+			expectError:  repository.ErrNilAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{
@@ -115,7 +115,7 @@ func TestAccount_Update(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  repository.ErrRequiredAccount,
+			expectError:  repository.ErrNilAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{
@@ -186,7 +186,7 @@ func TestAccount_Delete(t *testing.T) {
 		{
 			name:         "account is nil",
 			inputAccount: nil,
-			expectError:  repository.ErrRequiredAccount,
+			expectError:  repository.ErrNilAccount,
 			setMockDB:    func(sqlmock.Sqlmock) {},
 		},
 		{

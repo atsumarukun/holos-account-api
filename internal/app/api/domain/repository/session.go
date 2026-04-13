@@ -10,7 +10,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
 
-var ErrRequiredSession = stderr.New("session is required")
+var ErrNilSession = stderr.New("session must not be nil")
 
 type SessionRepository interface {
 	Save(context.Context, *entity.Session) error

@@ -30,7 +30,7 @@ func (r *sessionRepository) Save(ctx context.Context, session *entity.Session) e
 	const errMessage = "failed to save session"
 
 	if session == nil {
-		return errors.Wrap(repository.ErrRequiredSession, errors.CodeInternalServerError, errMessage)
+		return errors.Wrap(repository.ErrNilSession, errors.CodeInternalServerError, errMessage)
 	}
 
 	driver := transaction.GetDriver(ctx, r.db)
@@ -47,7 +47,7 @@ func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session)
 	const errMessage = "failed to delete session"
 
 	if session == nil {
-		return errors.Wrap(repository.ErrRequiredSession, errors.CodeInternalServerError, errMessage)
+		return errors.Wrap(repository.ErrNilSession, errors.CodeInternalServerError, errMessage)
 	}
 
 	driver := transaction.GetDriver(ctx, r.db)

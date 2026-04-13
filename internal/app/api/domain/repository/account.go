@@ -10,7 +10,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
 
-var ErrRequiredAccount = stderr.New("account is required")
+var ErrNilAccount = stderr.New("account must not be nil")
 
 type AccountRepository interface {
 	Create(context.Context, *entity.Account) error

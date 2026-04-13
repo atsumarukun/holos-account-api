@@ -45,7 +45,7 @@ func TestSession_Create(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  repository.ErrRequiredSession,
+			expectError:  repository.ErrNilSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 
@@ -117,7 +117,7 @@ func TestSession_Delete(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  repository.ErrRequiredSession,
+			expectError:  repository.ErrNilSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 

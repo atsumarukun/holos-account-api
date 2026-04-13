@@ -2,7 +2,7 @@ package service_test
 
 import (
 	"database/sql"
-	"errors"
+	stderr "errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,8 +10,8 @@ import (
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAccount_Exists(t *testing.T) {
@@ -42,7 +42,7 @@ func TestAccount_Exists(t *testing.T) {
 		{
 			name:         "exists",
 			inputAccount: account,
-			expectError:  status.ErrConflict,
+			expectError:  service.ErrAccountAlreadyExists,
 			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
@@ -59,7 +59,7 @@ func TestAccount_Exists(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					FindOneByNameIncludingDeleted(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeUnknown, "test error")).
 					Times(1)
 			},
 		},
@@ -75,8 +75,18 @@ func TestAccount_Exists(t *testing.T) {
 			tt.setMockAccountRepo(accountRepo)
 
 			serv := service.NewAccountService(accountRepo)
-			if err := serv.Exists(ctx, tt.inputAccount); !errors.Is(err, tt.expectError) {
+			err := serv.Exists(ctx, tt.inputAccount)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 		})
 	}

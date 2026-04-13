@@ -30,7 +30,7 @@ func (r *accountRepository) Create(ctx context.Context, account *entity.Account)
 	const errMessage = "failed to create account"
 
 	if account == nil {
-		return errors.Wrap(repository.ErrRequiredAccount, errors.CodeInternalServerError, errMessage)
+		return errors.Wrap(repository.ErrNilAccount, errors.CodeInternalServerError, errMessage)
 	}
 
 	driver := transaction.GetDriver(ctx, r.db)
@@ -47,7 +47,7 @@ func (r *accountRepository) Update(ctx context.Context, account *entity.Account)
 	const errMessage = "failed to update account"
 
 	if account == nil {
-		return errors.Wrap(repository.ErrRequiredAccount, errors.CodeInternalServerError, errMessage)
+		return errors.Wrap(repository.ErrNilAccount, errors.CodeInternalServerError, errMessage)
 	}
 
 	driver := transaction.GetDriver(ctx, r.db)
@@ -64,7 +64,7 @@ func (r *accountRepository) Delete(ctx context.Context, account *entity.Account)
 	const errMessage = "failed to delete account"
 
 	if account == nil {
-		return errors.Wrap(repository.ErrRequiredAccount, errors.CodeInternalServerError, errMessage)
+		return errors.Wrap(repository.ErrNilAccount, errors.CodeInternalServerError, errMessage)
 	}
 
 	driver := transaction.GetDriver(ctx, r.db)

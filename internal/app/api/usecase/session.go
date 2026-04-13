@@ -51,7 +51,7 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 			return status.ErrUnauthorized
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 

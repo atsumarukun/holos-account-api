@@ -1,14 +1,14 @@
 package entity_test
 
 import (
-	"errors"
+	stderr "errors"
 	"testing"
 	"time"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
 
 func TestNewSession(t *testing.T) {
@@ -24,13 +24,22 @@ func TestNewSession(t *testing.T) {
 		expectError  error
 	}{
 		{name: "successfully initialized", inputAccount: account, expectError: nil},
-		{name: "account is nil", inputAccount: nil, expectError: status.ErrInternal},
+		{name: "account is nil", inputAccount: nil, expectError: entity.ErrSessionNilAccount},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			session, err := entity.NewSession(tt.inputAccount)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if tt.expectError == nil {
@@ -69,8 +78,18 @@ func TestSession_GenerateToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			old := session.Token
 
-			if err := session.GenerateToken(); !errors.Is(err, tt.expectError) {
+			err := session.GenerateToken()
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if session.Token == old {

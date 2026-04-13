@@ -72,7 +72,7 @@ func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, password,
 			return status.ErrUnauthorized
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 
@@ -109,7 +109,7 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 			return status.ErrUnauthorized
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 
@@ -135,7 +135,7 @@ func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID, password stri
 			return status.ErrUnauthorized
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 
