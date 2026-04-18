@@ -14,10 +14,12 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
 
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/test/mock/usecase"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAccount_Create(t *testing.T) {
@@ -38,7 +40,7 @@ func TestAccount_Create(t *testing.T) {
 	}{
 		{
 			name:           "successfully created",
-			requestBody:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
+			requestBody:    []byte(`{"name":"name","password":"password","confirm_password":"password"}`),
 			expectCode:     http.StatusCreated,
 			expectResponse: fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
@@ -50,22 +52,48 @@ func TestAccount_Create(t *testing.T) {
 			},
 		},
 		{
-			name:             "invalid request",
+			name:             "bad request",
 			requestBody:      nil,
 			expectCode:       http.StatusBadRequest,
-			expectResponse:   []byte(`{"message":"bad request"}`),
+			expectResponse:   []byte(`{"error":{"code":"BAD_REQUEST","message":"bad request"}}`),
 			setMockAccountUC: func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:           "create error",
-			requestBody:    []byte(`{"name": "name", "password": "password", "confirm_password": "password"}`),
+			name:           "duplicate",
+			requestBody:    []byte(`{"name":"name","password":"password","confirm_password":"password"}`),
 			expectCode:     http.StatusConflict,
-			expectResponse: []byte(`{"message":"conflict"}`),
+			expectResponse: []byte(`{"error":{"code":"DUPLICATE","message":"account name already in use"}}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					Create(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrConflict).
+					Return(nil, errors.Wrap(service.ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account already exists")).
+					Times(1)
+			},
+		},
+		{
+			name:           "invalid input",
+			requestBody:    []byte(`{"name":"名前","password":"password","confirm_password":"password"}`),
+			expectCode:     http.StatusUnprocessableEntity,
+			expectResponse: []byte(`{"error":{"code":"INVALID_INPUT","message":"account name contains invalid characters"}}`),
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					Create(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, errors.Wrap(entity.ErrAccountNameInvalidChars, errors.CodeInvalidInput, "failed to set account name")).
+					Times(1)
+			},
+		},
+		{
+			name:           "internal server error",
+			requestBody:    []byte(`{"name":"name","password":"password","confirm_password":"password"}`),
+			expectCode:     http.StatusInternalServerError,
+			expectResponse: []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					Create(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to create account")).
 					Times(1)
 			},
 		},
@@ -123,7 +151,7 @@ func TestAccount_UpdateName(t *testing.T) {
 	}{
 		{
 			name:                  "successfully updated",
-			requestBody:           []byte(`{"password": "password", "name": "name"}`),
+			requestBody:           []byte(`{"password":"password","name": "name"}`),
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusOK,
 			expectResponse:        fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
@@ -136,32 +164,60 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
-			name:                  "invalid request",
+			name:                  "bad request",
 			requestBody:           nil,
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusBadRequest,
-			expectResponse:        []byte(`{"message":"bad request"}`),
+			expectResponse:        []byte(`{"error":{"code":"BAD_REQUEST","message":"bad request"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
 			name:                  "account id not set",
 			requestBody:           []byte(`{"name": "name"}`),
 			hasAccountIDInContext: false,
-			expectCode:            http.StatusInternalServerError,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusUnauthorized,
+			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:                  "update error",
-			requestBody:           []byte(`{"password": "password", "name": "name"}`),
+			name:                  "duplicate",
+			requestBody:           []byte(`{"password":"password","name":"name"}`),
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusConflict,
-			expectResponse:        []byte(`{"message":"conflict"}`),
+			expectResponse:        []byte(`{"error":{"code":"DUPLICATE","message":"account name already in use"}}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					UpdateName(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrConflict).
+					Return(nil, errors.Wrap(service.ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account already exists")).
+					Times(1)
+			},
+		},
+		{
+			name:                  "invalid input",
+			requestBody:           []byte(`{"password":"password","name":"名前"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusUnprocessableEntity,
+			expectResponse:        []byte(`{"error":{"code":"INVALID_INPUT","message":"account name contains invalid characters"}}`),
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					UpdateName(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, errors.Wrap(entity.ErrAccountNameInvalidChars, errors.CodeInvalidInput, "failed to set account name")).
+					Times(1)
+			},
+		},
+		{
+			name:                  "internal server error",
+			requestBody:           []byte(`{"password":"password","name":"name"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					UpdateName(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to update account")).
 					Times(1)
 			},
 		},
@@ -222,7 +278,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 	}{
 		{
 			name:                  "successfully updated",
-			requestBody:           []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
+			requestBody:           []byte(`{"password":"password","new_password":"password","confirm_password":"password"}`),
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusOK,
 			expectResponse:        fmt.Appendf(nil, `{"name":"%s"}`, accountDTO.Name),
@@ -235,32 +291,46 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			},
 		},
 		{
-			name:                  "invalid request",
+			name:                  "bad request",
 			requestBody:           nil,
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusBadRequest,
-			expectResponse:        []byte(`{"message":"bad request"}`),
+			expectResponse:        []byte(`{"error":{"code":"BAD_REQUEST","message":"bad request"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
 			name:                  "account id not set",
-			requestBody:           []byte(`{"password": "password", "confirm_password": "password"}`),
+			requestBody:           []byte(`{"password":"password","new_password":"password","confirm_password":"password"}`),
 			hasAccountIDInContext: false,
-			expectCode:            http.StatusInternalServerError,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusUnauthorized,
+			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:                  "update error",
-			requestBody:           []byte(`{"password": "password", "new_password": "password", "confirm_password": "password"}`),
+			name:                  "invalid input",
+			requestBody:           []byte(`{"password":"password","new_password":"パスワード","confirm_password":"パスワード"}`),
 			hasAccountIDInContext: true,
-			expectCode:            http.StatusInternalServerError,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusUnprocessableEntity,
+			expectResponse:        []byte(`{"error":{"code":"INVALID_INPUT","message":"password contains invalid characters"}}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(entity.ErrAccountPasswordInvalidChars, errors.CodeInvalidInput, "failed to set account password")).
+					Times(1)
+			},
+		},
+		{
+			name:                  "internal server error",
+			requestBody:           []byte(`{"password":"password","new_password":"password","confirm_password":"password"}`),
+			hasAccountIDInContext: true,
+			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
+			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
+				accountUC.
+					EXPECT().
+					UpdatePassword(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to update account")).
 					Times(1)
 			},
 		},
@@ -315,7 +385,7 @@ func TestAccount_Delete(t *testing.T) {
 	}{
 		{
 			name:                  "successfully deleted",
-			requestBody:           []byte(`{"password": "password"}`),
+			requestBody:           []byte(`{"password":"password"}`),
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusNoContent,
 			expectResponse:        nil,
@@ -328,32 +398,32 @@ func TestAccount_Delete(t *testing.T) {
 			},
 		},
 		{
-			name:                  "invalid request",
+			name:                  "bad request",
 			requestBody:           nil,
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusBadRequest,
-			expectResponse:        []byte(`{"message":"bad request"}`),
+			expectResponse:        []byte(`{"error":{"code":"BAD_REQUEST","message":"bad request"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
 			name:                  "account id not found",
-			requestBody:           []byte(`{"password": "password"}`),
+			requestBody:           []byte(`{"password":"password"}`),
 			hasAccountIDInContext: false,
-			expectCode:            http.StatusInternalServerError,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectCode:            http.StatusUnauthorized,
+			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
 			setMockAccountUC:      func(context.Context, *usecase.MockAccountUsecase) {},
 		},
 		{
-			name:                  "delete error",
-			requestBody:           []byte(`{"password": "password"}`),
+			name:                  "internal server error",
+			requestBody:           []byte(`{"password":"password"}`),
 			hasAccountIDInContext: true,
 			expectCode:            http.StatusInternalServerError,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
 			setMockAccountUC: func(ctx context.Context, accountUC *usecase.MockAccountUsecase) {
 				accountUC.
 					EXPECT().
 					Delete(ctx, gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
 		},

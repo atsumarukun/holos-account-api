@@ -14,10 +14,11 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
 
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/test/mock/usecase"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestSession_Logtin(t *testing.T) {
@@ -38,7 +39,7 @@ func TestSession_Logtin(t *testing.T) {
 	}{
 		{
 			name:           "successfully loggedin",
-			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
+			requestBody:    []byte(`{"account_name":"name","password":"password"}`),
 			expectCode:     http.StatusOK,
 			expectResponse: fmt.Appendf(nil, `{"token":"%s"}`, sessionDTO.Token),
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
@@ -50,35 +51,35 @@ func TestSession_Logtin(t *testing.T) {
 			},
 		},
 		{
-			name:             "invalid request",
+			name:             "bad request",
 			requestBody:      nil,
 			expectCode:       http.StatusBadRequest,
-			expectResponse:   []byte(`{"message":"bad request"}`),
+			expectResponse:   []byte(`{"error":{"code":"BAD_REQUEST","message":"bad request"}}`),
 			setMockSessionUC: func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:           "unauthorized",
-			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
+			name:           "unauthenticated",
+			requestBody:    []byte(`{"account_name":"name","password":"PASSWORD"}`),
 			expectCode:     http.StatusUnauthorized,
-			expectResponse: []byte(`{"message":"unauthorized"}`),
+			expectResponse: []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
 					Login(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrUnauthorized).
+					Return(nil, errors.Wrap(entity.ErrAccountPasswordIncorrect, errors.CodeUnauthenticated, "failed to verify account password")).
 					Times(1)
 			},
 		},
 		{
-			name:           "login error",
-			requestBody:    []byte(`{"account_name": "name", "password": "password"}`),
+			name:           "internal server error",
+			requestBody:    []byte(`{"account_name":"name","password":"password"}`),
 			expectCode:     http.StatusInternalServerError,
-			expectResponse: []byte(`{"message":"internal server error"}`),
+			expectResponse: []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
 					Login(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by name")).
 					Times(1)
 			},
 		},
@@ -143,33 +144,20 @@ func TestSession_Logout(t *testing.T) {
 		{
 			name:                  "account id not set",
 			hasAccountIDInContext: false,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
-			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
+			expectCode:            http.StatusUnauthorized,
 			setMockSessionUC:      func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:                  "unauthorized",
+			name:                  "internal server error",
 			hasAccountIDInContext: true,
-			expectCode:            http.StatusUnauthorized,
-			expectResponse:        []byte(`{"message":"unauthorized"}`),
-			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
-				sessionUC.
-					EXPECT().
-					Logout(gomock.Any(), gomock.Any()).
-					Return(status.ErrUnauthorized).
-					Times(1)
-			},
-		},
-		{
-			name:                  "logout faild",
-			hasAccountIDInContext: true,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
 			expectCode:            http.StatusInternalServerError,
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
 					Logout(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by account_id")).
 					Times(1)
 			},
 		},
@@ -243,33 +231,20 @@ func TestSession_Authorize(t *testing.T) {
 		{
 			name:                  "account id not found",
 			hasAccountIDInContext: false,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
-			expectCode:            http.StatusInternalServerError,
+			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
+			expectCode:            http.StatusUnauthorized,
 			setMockSessionUC:      func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:                  "unauthorized",
+			name:                  "internal server error",
 			hasAccountIDInContext: true,
-			expectCode:            http.StatusUnauthorized,
-			expectResponse:        []byte(`{"message":"unauthorized"}`),
-			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
-				sessionUC.
-					EXPECT().
-					Authorize(gomock.Any(), gomock.Any()).
-					Return(nil, status.ErrUnauthorized).
-					Times(1)
-			},
-		},
-		{
-			name:                  "authorize faild",
-			hasAccountIDInContext: true,
-			expectResponse:        []byte(`{"message":"internal server error"}`),
+			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
 			expectCode:            http.StatusInternalServerError,
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
 					Authorize(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by token and not expired")).
 					Times(1)
 			},
 		},

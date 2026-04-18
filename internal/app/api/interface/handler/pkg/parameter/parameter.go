@@ -1,9 +1,14 @@
 package parameter
 
 import (
-	"github.com/gin-gonic/gin"
+	stderr "errors"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	"github.com/gin-gonic/gin"
+)
+
+var (
+	ErrParameterMissing     = stderr.New("parameter is missing")
+	ErrInvalidParameterType = stderr.New("invalid parameter type")
 )
 
 func GetContextParameter[T any](c *gin.Context, name string) (T, error) {
@@ -11,12 +16,12 @@ func GetContextParameter[T any](c *gin.Context, name string) (T, error) {
 
 	param, exists := c.Get(name)
 	if !exists {
-		return zero, status.ErrInternal
+		return zero, ErrParameterMissing
 	}
 
 	v, ok := param.(T)
 	if !ok {
-		return zero, status.ErrInternal
+		return zero, ErrInvalidParameterType
 	}
 
 	return v, nil
