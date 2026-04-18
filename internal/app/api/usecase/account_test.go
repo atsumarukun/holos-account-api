@@ -3,7 +3,7 @@ package usecase_test
 import (
 	"context"
 	"database/sql"
-	"errors"
+	stderr "errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,12 +12,13 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
-	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
+	mockRepo "github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
-	"github.com/atsumarukun/holos-account-api/test/mock/domain/service"
+	mockServ "github.com/atsumarukun/holos-account-api/test/mock/domain/service"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAccount_Create(t *testing.T) {
@@ -35,8 +36,8 @@ func TestAccount_Create(t *testing.T) {
 		expectResult          *dto.AccountDTO
 		expectError           error
 		setMockTransactionObj func(*transaction.MockTransactionObject)
-		setMockAccountRepo    func(*repository.MockAccountRepository)
-		setMockAccountServ    func(*service.MockAccountService)
+		setMockAccountRepo    func(*mockRepo.MockAccountRepository)
+		setMockAccountServ    func(*mockServ.MockAccountService)
 	}{
 		{
 			name:                 "successfully created",
@@ -54,14 +55,14 @@ func TestAccount_Create(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
@@ -75,10 +76,10 @@ func TestAccount_Create(t *testing.T) {
 			inputPassword:         "password",
 			inputConfirmPassword:  "password",
 			expectResult:          nil,
-			expectError:           status.ErrUnprocessableContent,
+			expectError:           entity.ErrAccountNameInvalidLength,
 			setMockTransactionObj: func(*transaction.MockTransactionObject) {},
-			setMockAccountRepo:    func(*repository.MockAccountRepository) {},
-			setMockAccountServ:    func(*service.MockAccountService) {},
+			setMockAccountRepo:    func(*mockRepo.MockAccountRepository) {},
+			setMockAccountServ:    func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:                  "invalid password",
@@ -86,10 +87,10 @@ func TestAccount_Create(t *testing.T) {
 			inputPassword:         "",
 			inputConfirmPassword:  "",
 			expectResult:          nil,
-			expectError:           status.ErrUnprocessableContent,
+			expectError:           entity.ErrAccountPasswordInvalidLength,
 			setMockTransactionObj: func(*transaction.MockTransactionObject) {},
-			setMockAccountRepo:    func(*repository.MockAccountRepository) {},
-			setMockAccountServ:    func(*service.MockAccountService) {},
+			setMockAccountRepo:    func(*mockRepo.MockAccountRepository) {},
+			setMockAccountServ:    func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:                 "account already exists",
@@ -97,7 +98,7 @@ func TestAccount_Create(t *testing.T) {
 			inputPassword:        "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
-			expectError:          status.ErrConflict,
+			expectError:          service.ErrAccountNameAlreadyInUse,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -107,12 +108,12 @@ func TestAccount_Create(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(*repository.MockAccountRepository) {},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountRepo: func(*mockRepo.MockAccountRepository) {},
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
-					Return(status.ErrConflict).
+					Return(errors.Wrap(service.ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account alreadyn exists")).
 					Times(1)
 			},
 		},
@@ -132,14 +133,14 @@ func TestAccount_Create(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					Create(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to create account")).
 					Times(1)
 			},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
@@ -158,16 +159,25 @@ func TestAccount_Create(t *testing.T) {
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
 			tt.setMockTransactionObj(transactionObj)
 
-			accountRepo := repository.NewMockAccountRepository(ctrl)
+			accountRepo := mockRepo.NewMockAccountRepository(ctrl)
 			tt.setMockAccountRepo(accountRepo)
 
-			accountServ := service.NewMockAccountService(ctrl)
+			accountServ := mockServ.NewMockAccountService(ctrl)
 			tt.setMockAccountServ(accountServ)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
 			result, err := uc.Create(ctx, tt.inputName, tt.inputPassword, tt.inputConfirmPassword)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			opts := cmp.Options{
@@ -200,8 +210,8 @@ func TestAccount_UpdateName(t *testing.T) {
 		expectResult          *dto.AccountDTO
 		expectError           error
 		setMockTransactionObj func(*transaction.MockTransactionObject)
-		setMockAccountRepo    func(*repository.MockAccountRepository)
-		setMockAccountServ    func(*service.MockAccountService)
+		setMockAccountRepo    func(*mockRepo.MockAccountRepository)
+		setMockAccountServ    func(*mockServ.MockAccountService)
 	}{
 		{
 			name:          "successfully updated",
@@ -219,7 +229,7 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -231,7 +241,7 @@ func TestAccount_UpdateName(t *testing.T) {
 					Return(nil).
 					Times(1)
 			},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
@@ -240,12 +250,12 @@ func TestAccount_UpdateName(t *testing.T) {
 			},
 		},
 		{
-			name:          "authentication failed",
+			name:          "account not found",
 			inputID:       account.ID,
-			inputPassword: "PASSWORD",
+			inputPassword: "password",
 			inputName:     "update",
 			expectResult:  nil,
-			expectError:   status.ErrUnauthorized,
+			expectError:   usecase.ErrAccountNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -255,14 +265,39 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(gomock.Any(), gomock.Any()).
+					Return(nil, nil).
+					Times(1)
+			},
+			setMockAccountServ: func(*mockServ.MockAccountService) {},
+		},
+		{
+			name:          "authentication failed",
+			inputID:       account.ID,
+			inputPassword: "PASSWORD",
+			inputName:     "update",
+			expectResult:  nil,
+			expectError:   entity.ErrAccountPasswordIncorrect,
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
-			setMockAccountServ: func(*service.MockAccountService) {},
+			setMockAccountServ: func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:          "name not changed",
@@ -280,14 +315,14 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
-			setMockAccountServ: func(*service.MockAccountService) {},
+			setMockAccountServ: func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:          "invalid name",
@@ -295,7 +330,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			inputPassword: "password",
 			inputName:     "",
 			expectResult:  nil,
-			expectError:   status.ErrUnprocessableContent,
+			expectError:   entity.ErrAccountNameInvalidLength,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -305,14 +340,14 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
-			setMockAccountServ: func(*service.MockAccountService) {},
+			setMockAccountServ: func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:          "find error",
@@ -330,14 +365,14 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
-			setMockAccountServ: func(*service.MockAccountService) {},
+			setMockAccountServ: func(*mockServ.MockAccountService) {},
 		},
 		{
 			name:          "account already exists",
@@ -345,7 +380,7 @@ func TestAccount_UpdateName(t *testing.T) {
 			inputPassword: "password",
 			inputName:     "name",
 			expectResult:  nil,
-			expectError:   status.ErrConflict,
+			expectError:   service.ErrAccountNameAlreadyInUse,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -355,18 +390,18 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
 					Return(account, nil).
 					Times(1)
 			},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
-					Return(status.ErrConflict).
+					Return(errors.Wrap(service.ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account already exists")).
 					Times(1)
 			},
 		},
@@ -386,7 +421,7 @@ func TestAccount_UpdateName(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -395,10 +430,10 @@ func TestAccount_UpdateName(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					Update(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to update account")).
 					Times(1)
 			},
-			setMockAccountServ: func(accountServ *service.MockAccountService) {
+			setMockAccountServ: func(accountServ *mockServ.MockAccountService) {
 				accountServ.
 					EXPECT().
 					Exists(gomock.Any(), gomock.Any()).
@@ -417,16 +452,25 @@ func TestAccount_UpdateName(t *testing.T) {
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
 			tt.setMockTransactionObj(transactionObj)
 
-			accountRepo := repository.NewMockAccountRepository(ctrl)
+			accountRepo := mockRepo.NewMockAccountRepository(ctrl)
 			tt.setMockAccountRepo(accountRepo)
 
-			accountServ := service.NewMockAccountService(ctrl)
+			accountServ := mockServ.NewMockAccountService(ctrl)
 			tt.setMockAccountServ(accountServ)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
 			result, err := uc.UpdateName(ctx, tt.inputID, tt.inputPassword, tt.inputName)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
@@ -457,7 +501,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 		expectResult          *dto.AccountDTO
 		expectError           error
 		setMockTransactionObj func(*transaction.MockTransactionObject)
-		setMockAccountRepo    func(*repository.MockAccountRepository)
+		setMockAccountRepo    func(*mockRepo.MockAccountRepository)
 	}{
 		{
 			name:                 "successfully updated",
@@ -476,7 +520,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -490,13 +534,13 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			},
 		},
 		{
-			name:                 "authentication failed",
+			name:                 "account not found",
 			inputID:              account.ID,
-			inputPassword:        "PASSWORD",
+			inputPassword:        "password",
 			inputNewPassword:     "password",
 			inputConfirmPassword: "password",
 			expectResult:         nil,
-			expectError:          status.ErrUnauthorized,
+			expectError:          usecase.ErrAccountNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -506,7 +550,32 @@ func TestAccount_UpdatePassword(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(gomock.Any(), gomock.Any()).
+					Return(nil, nil).
+					Times(1)
+			},
+		},
+		{
+			name:                 "authentication failed",
+			inputID:              account.ID,
+			inputPassword:        "PASSWORD",
+			inputNewPassword:     "password",
+			inputConfirmPassword: "password",
+			expectResult:         nil,
+			expectError:          entity.ErrAccountPasswordIncorrect,
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -521,7 +590,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			inputNewPassword:     "",
 			inputConfirmPassword: "",
 			expectResult:         nil,
-			expectError:          status.ErrUnprocessableContent,
+			expectError:          entity.ErrAccountPasswordInvalidLength,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -531,7 +600,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -556,11 +625,11 @@ func TestAccount_UpdatePassword(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
 		},
@@ -581,7 +650,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -590,7 +659,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					Update(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to update account")).
 					Times(1)
 			},
 		},
@@ -605,13 +674,22 @@ func TestAccount_UpdatePassword(t *testing.T) {
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
 			tt.setMockTransactionObj(transactionObj)
 
-			accountRepo := repository.NewMockAccountRepository(ctrl)
+			accountRepo := mockRepo.NewMockAccountRepository(ctrl)
 			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
 			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputNewPassword, tt.inputConfirmPassword)
-			if !errors.Is(err, tt.expectError) {
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 
 			opts := cmp.Options{
@@ -637,7 +715,7 @@ func TestAccount_Delete(t *testing.T) {
 		inputPassword         string
 		expectError           error
 		setMockTransactionObj func(*transaction.MockTransactionObject)
-		setMockAccountRepo    func(*repository.MockAccountRepository)
+		setMockAccountRepo    func(*mockRepo.MockAccountRepository)
 	}{
 		{
 			name:          "successfully deleted",
@@ -653,7 +731,7 @@ func TestAccount_Delete(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -667,10 +745,10 @@ func TestAccount_Delete(t *testing.T) {
 			},
 		},
 		{
-			name:          "authentication failed",
+			name:          "account not found",
 			inputID:       account.ID,
-			inputPassword: "PASSWORD",
-			expectError:   status.ErrUnauthorized,
+			inputPassword: "password",
+			expectError:   nil,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -680,7 +758,29 @@ func TestAccount_Delete(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
+				accountRepo.
+					EXPECT().
+					FindOneByID(gomock.Any(), gomock.Any()).
+					Return(nil, nil).
+					Times(1)
+			},
+		},
+		{
+			name:          "authentication failed",
+			inputID:       account.ID,
+			inputPassword: "PASSWORD",
+			expectError:   entity.ErrAccountPasswordIncorrect,
+			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
+				transactionObj.
+					EXPECT().
+					Transaction(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					}).
+					Times(1)
+			},
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -702,11 +802,11 @@ func TestAccount_Delete(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
 		},
@@ -724,7 +824,7 @@ func TestAccount_Delete(t *testing.T) {
 					}).
 					Times(1)
 			},
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
+			setMockAccountRepo: func(accountRepo *mockRepo.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
@@ -733,7 +833,7 @@ func TestAccount_Delete(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					Delete(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to delete account")).
 					Times(1)
 			},
 		},
@@ -748,12 +848,22 @@ func TestAccount_Delete(t *testing.T) {
 			transactionObj := transaction.NewMockTransactionObject(ctrl)
 			tt.setMockTransactionObj(transactionObj)
 
-			accountRepo := repository.NewMockAccountRepository(ctrl)
+			accountRepo := mockRepo.NewMockAccountRepository(ctrl)
 			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
-			if err := uc.Delete(ctx, tt.inputID, tt.inputPassword); !errors.Is(err, tt.expectError) {
+			err := uc.Delete(ctx, tt.inputID, tt.inputPassword)
+			if !stderr.Is(err, tt.expectError) {
 				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
+			}
+
+			if err != nil {
+				if _, ok := err.(interface {
+					Code() errors.ErrorCode
+					Message() string
+				}); !ok {
+					t.Errorf("error is not wrapped")
+				}
 			}
 		})
 	}

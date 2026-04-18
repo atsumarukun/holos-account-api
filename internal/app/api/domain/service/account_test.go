@@ -42,7 +42,7 @@ func TestAccount_Exists(t *testing.T) {
 		{
 			name:         "exists",
 			inputAccount: account,
-			expectError:  service.ErrAccountAlreadyExists,
+			expectError:  service.ErrAccountNameAlreadyInUse,
 			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
@@ -59,7 +59,7 @@ func TestAccount_Exists(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					FindOneByNameIncludingDeleted(gomock.Any(), gomock.Any()).
-					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeUnknown, "test error")).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "faild to find account by name including deleted")).
 					Times(1)
 			},
 		},

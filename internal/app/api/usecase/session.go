@@ -3,16 +3,19 @@ package usecase
 
 import (
 	"context"
+	stderr "errors"
 
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
+	"github.com/atsumarukun/holos-api-pkg/errors"
 )
+
+var ErrSessionNotFound = stderr.New("session not found")
 
 type SessionUsecase interface {
 	Login(context.Context, string, string) (*dto.SessionDTO, error)
@@ -48,7 +51,7 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 			return err
 		}
 		if account == nil {
-			return status.ErrUnauthorized
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to login")
 		}
 
 		if err := account.VerifyPassword(password); err != nil {
@@ -75,7 +78,7 @@ func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error 
 			return err
 		}
 		if session == nil {
-			return status.ErrUnauthorized
+			return nil
 		}
 
 		return u.sessionRepo.Delete(ctx, session)
@@ -91,7 +94,7 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 			return err
 		}
 		if session == nil {
-			return status.ErrUnauthorized
+			return errors.Wrap(ErrSessionNotFound, errors.CodeUnauthenticated, "failed to authenticate")
 		}
 
 		account, err = u.accountRepo.FindOneByID(ctx, session.AccountID)
@@ -99,7 +102,7 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 			return err
 		}
 		if account == nil {
-			return status.ErrUnauthorized
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to authenticate")
 		}
 
 		return nil
@@ -116,7 +119,7 @@ func (u *sessionUsecase) Authorize(ctx context.Context, accountID uuid.UUID) (*d
 		return nil, err
 	}
 	if account == nil {
-		return nil, status.ErrUnauthorized
+		return nil, errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to authorize")
 	}
 
 	return mapper.ToAccountDTO(account), nil

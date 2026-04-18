@@ -10,7 +10,7 @@ import (
 	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
-var ErrAccountAlreadyExists = stderr.New("account already exists")
+var ErrAccountNameAlreadyInUse = stderr.New("account name already in use")
 
 type AccountService interface {
 	Exists(context.Context, *entity.Account) error
@@ -32,7 +32,7 @@ func (s *accountService) Exists(ctx context.Context, account *entity.Account) er
 		return err
 	}
 	if acc != nil {
-		return errors.Wrap(ErrAccountAlreadyExists, errors.CodeDuplicate, "account existence check")
+		return errors.Wrap(ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account already exists")
 	}
 	return nil
 }
