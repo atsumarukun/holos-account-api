@@ -1,17 +1,16 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/builder"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/parameter"
+	hdlerr "github.com/atsumarukun/holos-account-api/internal/app/api/interface/pkg/errors"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 )
 
@@ -34,8 +33,7 @@ func NewSessionHandler(sessionUC usecase.SessionUsecase) SessionHandler {
 func (h *sessionHandler) Login(c *gin.Context) {
 	var req schema.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Println(err)
-		errors.Handle(c, status.ErrBadRequest)
+		hdlerr.Handle(c, errors.Wrap(err, errors.CodeBadRequest, "failed to login"))
 		return
 	}
 
@@ -43,8 +41,7 @@ func (h *sessionHandler) Login(c *gin.Context) {
 
 	session, err := h.sessionUC.Login(ctx, req.AccountName, req.Password)
 	if err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, err)
 		return
 	}
 
@@ -54,16 +51,14 @@ func (h *sessionHandler) Login(c *gin.Context) {
 func (h *sessionHandler) Logout(c *gin.Context) {
 	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
 	if err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, errors.Wrap(err, errors.CodeUnauthenticated, "failed to logout"))
 		return
 	}
 
 	ctx := c.Request.Context()
 
 	if err := h.sessionUC.Logout(ctx, accountID); err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, err)
 		return
 	}
 
@@ -73,8 +68,7 @@ func (h *sessionHandler) Logout(c *gin.Context) {
 func (h *sessionHandler) Authorize(c *gin.Context) {
 	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
 	if err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, errors.Wrap(err, errors.CodeUnauthenticated, "failed to authorize"))
 		return
 	}
 
@@ -82,8 +76,7 @@ func (h *sessionHandler) Authorize(c *gin.Context) {
 
 	account, err := h.sessionUC.Authorize(ctx, accountID)
 	if err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, err)
 		return
 	}
 

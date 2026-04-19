@@ -2,7 +2,6 @@ package database_test
 
 import (
 	"database/sql"
-	"errors"
 	"regexp"
 	"testing"
 	"time"
@@ -12,8 +11,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	mockDatabase "github.com/atsumarukun/holos-account-api/test/mock/database"
 )
 
@@ -44,7 +44,7 @@ func TestSession_Create(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrNilSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 
@@ -68,9 +68,8 @@ func TestSession_Create(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBSessionRepository(db)
-			if err := repo.Save(t.Context(), tt.inputSession); !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			err := repo.Save(t.Context(), tt.inputSession)
+			assert.Error(t, err, tt.expectError)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Error(err)
@@ -106,7 +105,7 @@ func TestSession_Delete(t *testing.T) {
 		{
 			name:         "session is nil",
 			inputSession: nil,
-			expectError:  status.ErrInternal,
+			expectError:  repository.ErrNilSession,
 			setMockDB:    func(mock sqlmock.Sqlmock) {},
 		},
 
@@ -130,9 +129,8 @@ func TestSession_Delete(t *testing.T) {
 			tt.setMockDB(mock)
 
 			repo := database.NewDBSessionRepository(db)
-			if err := repo.Delete(t.Context(), tt.inputSession); !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			err := repo.Delete(t.Context(), tt.inputSession)
+			assert.Error(t, err, tt.expectError)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Error(err)
@@ -202,9 +200,7 @@ func TestSession_FindOneByAccountID(t *testing.T) {
 
 			repo := database.NewDBSessionRepository(db)
 			result, err := repo.FindOneByAccountID(t.Context(), tt.inputAccountID)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
 				t.Error(diff)
@@ -278,9 +274,7 @@ func TestSession_FindOneByTokenAndNotExpired(t *testing.T) {
 
 			repo := database.NewDBSessionRepository(db)
 			result, err := repo.FindOneByTokenAndNotExpired(t.Context(), tt.inputToken)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
 				t.Error(diff)

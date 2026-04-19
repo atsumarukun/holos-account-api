@@ -3,11 +3,14 @@ package repository
 
 import (
 	"context"
+	stderr "errors"
 
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 )
+
+var ErrNilAccount = stderr.New("account must not be nil")
 
 type AccountRepository interface {
 	Create(context.Context, *entity.Account) error

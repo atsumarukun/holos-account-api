@@ -59,7 +59,7 @@ paths:
         400:
           $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/unauthorized"
+          $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
   /accounts/name:
@@ -80,14 +80,12 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/update_account_name"
       responses:
-        201:
+        200:
           $ref: "#/components/responses/update_account_name"
         400:
           $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/unauthorized"
-        404:
-          $ref: "#/components/responses/not_found"
+          $ref: "#/components/responses/unauthenticated"
         409:
           $ref: "#/components/responses/duplicate"
         422:
@@ -112,14 +110,12 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/update_account_password"
       responses:
-        201:
+        200:
           $ref: "#/components/responses/update_account_password"
         400:
           $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/unauthorized"
-        404:
-          $ref: "#/components/responses/not_found"
+          $ref: "#/components/responses/unauthenticated"
         422:
           $ref: "#/components/responses/invalid_input"
         500:
@@ -137,7 +133,7 @@ paths:
         400:
           $ref: "#/components/responses/bad_request"
         401:
-          $ref: "#/components/responses/unauthorized"
+          $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
   /logout:
@@ -159,7 +155,7 @@ paths:
         204:
           $ref: "#/components/responses/no_content"
         401:
-          $ref: "#/components/responses/unauthorized"
+          $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
   /authorization:
@@ -181,7 +177,7 @@ paths:
         200:
           $ref: "#/components/responses/authorization"
         401:
-          $ref: "#/components/responses/unauthorized"
+          $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
 
@@ -350,8 +346,8 @@ components:
                   message:
                     type: "string"
                     example: "bad request"
-    unauthorized:
-      description: "Unauthorized"
+    unauthenticated:
+      description: "Unauthenticated"
       content:
         text/plain:
           schema:
@@ -362,26 +358,10 @@ components:
                 properties:
                   code:
                     type: "string"
-                    example: "UNAUTHORIZED"
+                    example: "UNAUTHENTICATED"
                   message:
                     type: "string"
-                    example: "unauthorized"
-    not_found:
-      description: "Not Found"
-      content:
-        text/plain:
-          schema:
-            type: "object"
-            properties:
-              error:
-                type: "object"
-                properties:
-                  code:
-                    type: "string"
-                    example: "NOT_FOUND"
-                  message:
-                    type: "string"
-                    example: "not found"
+                    example: "unauthenticated"
     duplicate:
       description: "Duplicate"
       content:

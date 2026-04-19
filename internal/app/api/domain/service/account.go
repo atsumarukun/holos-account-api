@@ -3,11 +3,15 @@ package service
 
 import (
 	"context"
+	stderr "errors"
+
+	"github.com/atsumarukun/holos-api-pkg/errors"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 )
+
+var ErrAccountNameAlreadyInUse = stderr.New("account name already in use")
 
 type AccountService interface {
 	Exists(context.Context, *entity.Account) error
@@ -29,7 +33,7 @@ func (s *accountService) Exists(ctx context.Context, account *entity.Account) er
 		return err
 	}
 	if acc != nil {
-		return status.ErrConflict
+		return errors.Wrap(ErrAccountNameAlreadyInUse, errors.CodeDuplicate, "account already exists")
 	}
 	return nil
 }

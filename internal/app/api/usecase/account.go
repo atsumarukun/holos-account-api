@@ -3,17 +3,20 @@ package usecase
 
 import (
 	"context"
+	stderr "errors"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
 )
+
+var ErrAccountNotFound = stderr.New("account not found")
 
 type AccountUsecase interface {
 	Create(context.Context, string, string, string) (*dto.AccountDTO, error)
@@ -69,10 +72,10 @@ func (u *accountUsecase) UpdateName(ctx context.Context, id uuid.UUID, password,
 			return err
 		}
 		if account == nil {
-			return status.ErrUnauthorized
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to update account name")
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 
@@ -106,10 +109,10 @@ func (u *accountUsecase) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 			return err
 		}
 		if account == nil {
-			return status.ErrUnauthorized
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to update account password")
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 
@@ -132,10 +135,10 @@ func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID, password stri
 			return err
 		}
 		if account == nil {
-			return status.ErrUnauthorized
+			return nil
 		}
 
-		if err := account.ComparePassword(password); err != nil {
+		if err := account.VerifyPassword(password); err != nil {
 			return err
 		}
 

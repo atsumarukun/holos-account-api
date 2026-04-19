@@ -3,11 +3,17 @@ package entity
 import (
 	"crypto/rand"
 	"encoding/base64"
+	stderr "errors"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	"github.com/atsumarukun/holos-api-pkg/errors"
+)
+
+var (
+	ErrSessionTokenInvalidLength = stderr.New("token must be 32 characters")
+	ErrSessionNilAccount         = stderr.New("account must not be nil")
 )
 
 type Session struct {
@@ -38,22 +44,27 @@ func RestoreSession(accountID uuid.UUID, token string, expiresAt time.Time) *Ses
 }
 
 func (s *Session) GenerateToken() error {
+	const errMessage = "failed to generate token"
+
 	buf := make([]byte, 24)
 	if _, err := rand.Read(buf); err != nil {
-		return err
+		return errors.Wrap(err, errors.CodeInternalServerError, errMessage)
 	}
+
 	token := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(buf)
-	if 32 < len(token) {
-		return status.ErrInternal
+	if len(token) != 32 {
+		return errors.Wrap(ErrSessionTokenInvalidLength, errors.CodeInternalServerError, errMessage)
 	}
+
 	s.Token = token
 	s.ExpiresAt = time.Now().Add(time.Hour * 24 * 7)
+
 	return nil
 }
 
 func (s *Session) setAccount(account *Account) error {
 	if account == nil {
-		return status.ErrInternal
+		return errors.Wrap(ErrSessionNilAccount, errors.CodeInternalServerError, "failed to set session account")
 	}
 	s.AccountID = account.ID
 	return nil

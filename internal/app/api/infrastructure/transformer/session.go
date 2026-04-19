@@ -14,9 +14,5 @@ func ToSessionModel(session *entity.Session) *model.SessionModel {
 }
 
 func ToSessionEntity(session *model.SessionModel) *entity.Session {
-	return &entity.Session{
-		AccountID: session.AccountID,
-		Token:     session.Token,
-		ExpiresAt: session.ExpiresAt,
-	}
+	return entity.RestoreSession(session.AccountID, session.Token, session.ExpiresAt)
 }

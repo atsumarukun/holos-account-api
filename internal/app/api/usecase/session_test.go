@@ -3,19 +3,19 @@ package usecase_test
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"testing"
 	"time"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
 )
@@ -77,7 +77,7 @@ func TestSession_Login(t *testing.T) {
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     nil,
-			expectError:      status.ErrUnauthorized,
+			expectError:      usecase.ErrAccountNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -101,7 +101,7 @@ func TestSession_Login(t *testing.T) {
 			inputAccountName: "name",
 			inputPassword:    "PASSWORD",
 			expectResult:     nil,
-			expectError:      status.ErrUnauthorized,
+			expectError:      entity.ErrAccountPasswordIncorrect,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -140,7 +140,7 @@ func TestSession_Login(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					FindOneByName(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by name")).
 					Times(1)
 			},
 		},
@@ -163,7 +163,7 @@ func TestSession_Login(t *testing.T) {
 				sessionRepo.
 					EXPECT().
 					Save(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to save session")).
 					Times(1)
 			},
 			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
@@ -193,9 +193,7 @@ func TestSession_Login(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Login(ctx, tt.inputAccountName, tt.inputPassword)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(dto.SessionDTO{}, "Token", "ExpiresAt"),
@@ -250,7 +248,7 @@ func TestSession_Logout(t *testing.T) {
 		{
 			name:           "session not found",
 			inputAccountID: session.AccountID,
-			expectError:    status.ErrUnauthorized,
+			expectError:    nil,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -285,7 +283,7 @@ func TestSession_Logout(t *testing.T) {
 				sessionRepo.
 					EXPECT().
 					FindOneByAccountID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by account_id")).
 					Times(1)
 			},
 		},
@@ -311,7 +309,7 @@ func TestSession_Logout(t *testing.T) {
 				sessionRepo.
 					EXPECT().
 					Delete(gomock.Any(), gomock.Any()).
-					Return(sql.ErrConnDone).
+					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to delete session")).
 					Times(1)
 			},
 		},
@@ -330,9 +328,8 @@ func TestSession_Logout(t *testing.T) {
 			tt.setMockSessionRepo(sessionRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, nil)
-			if err := uc.Logout(ctx, tt.inputAccountID); !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			err := uc.Logout(ctx, tt.inputAccountID)
+			assert.Error(t, err, tt.expectError)
 		})
 	}
 }
@@ -396,7 +393,7 @@ func TestSession_Authenticate(t *testing.T) {
 			name:         "session not found",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
-			expectError:  status.ErrUnauthorized,
+			expectError:  usecase.ErrSessionNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -419,7 +416,7 @@ func TestSession_Authenticate(t *testing.T) {
 			name:         "account not found",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: nil,
-			expectError:  status.ErrUnauthorized,
+			expectError:  usecase.ErrAccountNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
@@ -462,7 +459,7 @@ func TestSession_Authenticate(t *testing.T) {
 				sessionRepo.
 					EXPECT().
 					FindOneByTokenAndNotExpired(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by token and not expired")).
 					Times(1)
 			},
 			setMockAccountRepo: func(*repository.MockAccountRepository) {},
@@ -492,7 +489,7 @@ func TestSession_Authenticate(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
 		},
@@ -516,9 +513,7 @@ func TestSession_Authenticate(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Authenticate(ctx, tt.inputToken)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)
@@ -563,7 +558,7 @@ func TestSession_Authorize(t *testing.T) {
 			name:           "account not found",
 			inputAccountID: account.ID,
 			expectResult:   nil,
-			expectError:    status.ErrUnauthorized,
+			expectError:    usecase.ErrAccountNotFound,
 			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
 				accountRepo.
 					EXPECT().
@@ -581,7 +576,7 @@ func TestSession_Authorize(t *testing.T) {
 				accountRepo.
 					EXPECT().
 					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
 					Times(1)
 			},
 		},
@@ -598,9 +593,7 @@ func TestSession_Authorize(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(nil, nil, accountRepo)
 			result, err := uc.Authorize(ctx, tt.inputAccountID)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)

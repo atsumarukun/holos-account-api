@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -49,19 +50,26 @@ func TestAuthentication_Authenticate(t *testing.T) {
 			name:                "session token not set",
 			authorizationHeader: "",
 			expectResult:        uuid.Nil,
-			expectError:         []byte(`{"message":"unauthorized"}`),
+			expectError:         []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
+			setMockSessionUC:    func(*usecase.MockSessionUsecase) {},
+		},
+		{
+			name:                "invalid session token",
+			authorizationHeader: "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResult:        uuid.Nil,
+			expectError:         []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
 			setMockSessionUC:    func(*usecase.MockSessionUsecase) {},
 		},
 		{
 			name:                "authorize error",
 			authorizationHeader: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult:        uuid.Nil,
-			expectError:         []byte(`{"message":"internal server error"}`),
+			expectError:         []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
 					Authenticate(gomock.Any(), gomock.Any()).
-					Return(nil, sql.ErrConnDone).
+					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to authenticate")).
 					Times(1)
 			},
 		},

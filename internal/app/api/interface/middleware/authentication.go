@@ -1,14 +1,19 @@
 package middleware
 
 import (
-	"log"
+	stderr "errors"
 	"strings"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/errors"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	hdlerr "github.com/atsumarukun/holos-account-api/internal/app/api/interface/pkg/errors"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
+)
+
+var (
+	ErrInvalidToken    = stderr.New("invalid token")
+	ErrAccountNotFound = stderr.New("account not found")
 )
 
 type AuthenticationMiddleware interface {
@@ -28,9 +33,8 @@ func NewAuthenticationMiddleware(sessionUC usecase.SessionUsecase) Authenticatio
 func (m *authenticationMiddleware) Authenticate(c *gin.Context) {
 	sessionToken := strings.Split(c.Request.Header.Get("Authorization"), " ")
 	if len(sessionToken) != 2 || sessionToken[0] != "Session" {
-		err := status.ErrUnauthorized
-		log.Println(err)
-		errors.Handle(c, err)
+		err := errors.Wrap(ErrInvalidToken, errors.CodeUnauthenticated, "failed to authenticate")
+		hdlerr.Handle(c, err)
 		c.Abort()
 		return
 	}
@@ -39,15 +43,13 @@ func (m *authenticationMiddleware) Authenticate(c *gin.Context) {
 
 	account, err := m.sessionUC.Authenticate(ctx, sessionToken[1])
 	if err != nil {
-		log.Println(err)
-		errors.Handle(c, err)
+		hdlerr.Handle(c, err)
 		c.Abort()
 		return
 	}
 	if account == nil {
-		err := status.ErrUnauthorized
-		log.Println(err)
-		errors.Handle(c, err)
+		err := errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to authenticate")
+		hdlerr.Handle(c, err)
 		c.Abort()
 		return
 	}

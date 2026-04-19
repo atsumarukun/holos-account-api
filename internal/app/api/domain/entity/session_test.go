@@ -1,14 +1,13 @@
 package entity_test
 
 import (
-	"errors"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/pkg/status"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 )
 
 func TestNewSession(t *testing.T) {
@@ -24,14 +23,12 @@ func TestNewSession(t *testing.T) {
 		expectError  error
 	}{
 		{name: "successfully initialized", inputAccount: account, expectError: nil},
-		{name: "account is nil", inputAccount: nil, expectError: status.ErrInternal},
+		{name: "account is nil", inputAccount: nil, expectError: entity.ErrSessionNilAccount},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			session, err := entity.NewSession(tt.inputAccount)
-			if !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if tt.expectError == nil {
 				if session == nil {
@@ -69,9 +66,8 @@ func TestSession_GenerateToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			old := session.Token
 
-			if err := session.GenerateToken(); !errors.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
+			err := session.GenerateToken()
+			assert.Error(t, err, tt.expectError)
 
 			if session.Token == old {
 				t.Error("token has not been updated")

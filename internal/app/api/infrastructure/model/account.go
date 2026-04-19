@@ -1,7 +1,9 @@
 package model
 
+import "github.com/google/uuid"
+
 type AccountModel struct {
-	ID       string `db:"id"`
-	Name     string `db:"name"`
-	Password string `db:"password"`
+	ID       uuid.UUID `db:"id"`
+	Name     string    `db:"name"`
+	Password string    `db:"password"`
 }
