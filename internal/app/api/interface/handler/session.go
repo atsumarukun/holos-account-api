@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/builder"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/handler/pkg/parameter"
 	hdlerr "github.com/atsumarukun/holos-account-api/internal/app/api/interface/pkg/errors"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/pkg/parameter"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 )
