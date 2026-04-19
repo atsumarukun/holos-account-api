@@ -3,9 +3,9 @@ package usecase_test
 import (
 	"context"
 	"database/sql"
-	stderr "errors"
 	"testing"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -15,10 +15,10 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	mockRepo "github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
 	mockServ "github.com/atsumarukun/holos-account-api/test/mock/domain/service"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAccount_Create(t *testing.T) {
@@ -167,18 +167,7 @@ func TestAccount_Create(t *testing.T) {
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
 			result, err := uc.Create(ctx, tt.inputName, tt.inputPassword, tt.inputConfirmPassword)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(dto.AccountDTO{}, "ID", "Password"),
@@ -460,18 +449,7 @@ func TestAccount_UpdateName(t *testing.T) {
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, accountServ)
 			result, err := uc.UpdateName(ctx, tt.inputID, tt.inputPassword, tt.inputName)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)
@@ -679,18 +657,7 @@ func TestAccount_UpdatePassword(t *testing.T) {
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
 			result, err := uc.UpdatePassword(ctx, tt.inputID, tt.inputPassword, tt.inputNewPassword, tt.inputConfirmPassword)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(dto.AccountDTO{}, "Password"),
@@ -853,18 +820,7 @@ func TestAccount_Delete(t *testing.T) {
 
 			uc := usecase.NewAccountUsecase(transactionObj, accountRepo, nil)
 			err := uc.Delete(ctx, tt.inputID, tt.inputPassword)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 		})
 	}
 }

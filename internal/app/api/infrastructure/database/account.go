@@ -80,42 +80,42 @@ func (r *accountRepository) Delete(ctx context.Context, account *entity.Account)
 func (r *accountRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Account, error) {
 	const errMessage = "faild to find account by id"
 
-	driver := transaction.GetDriver(ctx, r.db)
-	var model model.AccountModel
-
-	if err := driver.QueryRowxContext(ctx, `SELECT id, name, password FROM accounts WHERE id = ? AND deleted_at IS NULL LIMIT 1;`, id).StructScan(&model); err != nil {
-		if stderr.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, errors.Wrap(err, errors.CodeInternalServerError, errMessage)
-	}
-
-	return transformer.ToAccountEntity(&model), nil
+	return r.findOne(
+		ctx,
+		`SELECT id, name, password FROM accounts WHERE id = ? AND deleted_at IS NULL LIMIT 1;`,
+		[]any{id},
+		errMessage,
+	)
 }
 
 func (r *accountRepository) FindOneByName(ctx context.Context, name string) (*entity.Account, error) {
 	const errMessage = "faild to find account by name"
 
-	driver := transaction.GetDriver(ctx, r.db)
-	var model model.AccountModel
-
-	if err := driver.QueryRowxContext(ctx, `SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`, name).StructScan(&model); err != nil {
-		if stderr.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, errors.Wrap(err, errors.CodeInternalServerError, errMessage)
-	}
-
-	return transformer.ToAccountEntity(&model), nil
+	return r.findOne(
+		ctx,
+		`SELECT id, name, password FROM accounts WHERE name = ? AND deleted_at IS NULL LIMIT 1;`,
+		[]any{name},
+		errMessage,
+	)
 }
 
 func (r *accountRepository) FindOneByNameIncludingDeleted(ctx context.Context, name string) (*entity.Account, error) {
 	const errMessage = "faild to find account by name including deleted"
 
+	return r.findOne(
+		ctx,
+		`SELECT id, name, password FROM accounts WHERE name = ? LIMIT 1;`,
+		[]any{name},
+		errMessage,
+	)
+}
+
+// nolint:dupl // 集約単位のrepository実装. 集約境界を保つためrepository間での共通化は行わず重複を許容.
+func (r *accountRepository) findOne(ctx context.Context, query string, args []any, errMessage string) (*entity.Account, error) {
 	driver := transaction.GetDriver(ctx, r.db)
 	var model model.AccountModel
 
-	if err := driver.QueryRowxContext(ctx, `SELECT id, name, password FROM accounts WHERE name = ? LIMIT 1;`, name).StructScan(&model); err != nil {
+	if err := driver.QueryRowxContext(ctx, query, args...).StructScan(&model); err != nil {
 		if stderr.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

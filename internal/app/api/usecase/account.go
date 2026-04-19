@@ -5,6 +5,7 @@ import (
 	"context"
 	stderr "errors"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
@@ -13,7 +14,6 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 var ErrAccountNotFound = stderr.New("account not found")

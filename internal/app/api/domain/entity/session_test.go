@@ -1,14 +1,13 @@
 package entity_test
 
 import (
-	stderr "errors"
 	"testing"
 	"time"
 
-	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 )
 
 func TestNewSession(t *testing.T) {
@@ -29,18 +28,7 @@ func TestNewSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			session, err := entity.NewSession(tt.inputAccount)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if tt.expectError == nil {
 				if session == nil {
@@ -79,18 +67,7 @@ func TestSession_GenerateToken(t *testing.T) {
 			old := session.Token
 
 			err := session.GenerateToken()
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if session.Token == old {
 				t.Error("token has not been updated")

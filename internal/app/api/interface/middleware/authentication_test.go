@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -14,7 +15,6 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/middleware"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/test/mock/usecase"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAuthentication_Authenticate(t *testing.T) {

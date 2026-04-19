@@ -52,7 +52,7 @@ func (s *Session) GenerateToken() error {
 	}
 
 	token := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(buf)
-	if 32 != len(token) {
+	if len(token) != 32 {
 		return errors.Wrap(ErrSessionTokenInvalidLength, errors.CodeInternalServerError, errMessage)
 	}
 

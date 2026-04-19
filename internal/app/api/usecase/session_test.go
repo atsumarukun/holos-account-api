@@ -3,10 +3,10 @@ package usecase_test
 import (
 	"context"
 	"database/sql"
-	stderr "errors"
 	"testing"
 	"time"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -15,9 +15,9 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestSession_Login(t *testing.T) {
@@ -193,18 +193,7 @@ func TestSession_Login(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Login(ctx, tt.inputAccountName, tt.inputPassword)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(dto.SessionDTO{}, "Token", "ExpiresAt"),
@@ -340,18 +329,7 @@ func TestSession_Logout(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, nil)
 			err := uc.Logout(ctx, tt.inputAccountID)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 		})
 	}
 }
@@ -535,18 +513,7 @@ func TestSession_Authenticate(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
 			result, err := uc.Authenticate(ctx, tt.inputToken)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)
@@ -626,18 +593,7 @@ func TestSession_Authorize(t *testing.T) {
 
 			uc := usecase.NewSessionUsecase(nil, nil, accountRepo)
 			result, err := uc.Authorize(ctx, tt.inputAccountID)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
 				t.Error(diff)

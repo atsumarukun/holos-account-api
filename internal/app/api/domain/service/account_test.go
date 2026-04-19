@@ -2,16 +2,16 @@ package service_test
 
 import (
 	"database/sql"
-	stderr "errors"
 	"testing"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/service"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 func TestAccount_Exists(t *testing.T) {
@@ -76,18 +76,7 @@ func TestAccount_Exists(t *testing.T) {
 
 			serv := service.NewAccountService(accountRepo)
 			err := serv.Exists(ctx, tt.inputAccount)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 		})
 	}
 }

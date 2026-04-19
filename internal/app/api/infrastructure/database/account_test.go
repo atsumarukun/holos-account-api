@@ -2,18 +2,17 @@ package database_test
 
 import (
 	"database/sql"
-	stderr "errors"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database"
+	"github.com/atsumarukun/holos-account-api/test/assert"
 	mockDatabase "github.com/atsumarukun/holos-account-api/test/mock/database"
 )
 
@@ -68,18 +67,7 @@ func TestAccount_Create(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			err := repo.Create(t.Context(), tt.inputAccount)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Error(err)
@@ -139,18 +127,7 @@ func TestAccount_Update(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			err := repo.Update(t.Context(), tt.inputAccount)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Error(err)
@@ -210,18 +187,7 @@ func TestAccount_Delete(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			err := repo.Delete(t.Context(), tt.inputAccount)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
 				t.Error(err)
@@ -290,18 +256,7 @@ func TestAccount_FindOneByID(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByID(t.Context(), tt.inputID)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
 				t.Error(diff)
@@ -374,18 +329,7 @@ func TestAccount_FindOneByName(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByName(t.Context(), tt.inputName)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
 				t.Error(diff)
@@ -458,18 +402,7 @@ func TestAccount_FindOneByNameIncludingDeleted(t *testing.T) {
 
 			repo := database.NewDBAccountRepository(db)
 			result, err := repo.FindOneByNameIncludingDeleted(t.Context(), tt.inputName)
-			if !stderr.Is(err, tt.expectError) {
-				t.Errorf("\nexpect: %v\ngot: %v", tt.expectError, err)
-			}
-
-			if err != nil {
-				if _, ok := err.(interface {
-					Code() errors.ErrorCode
-					Message() string
-				}); !ok {
-					t.Errorf("error is not wrapped")
-				}
-			}
+			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(result, tt.expectResult); diff != "" {
 				t.Error(diff)

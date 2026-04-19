@@ -5,6 +5,7 @@ import (
 	"context"
 	stderr "errors"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/google/uuid"
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
@@ -12,7 +13,6 @@ import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository/pkg/transaction"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/dto"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase/mapper"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 var ErrSessionNotFound = stderr.New("session not found")

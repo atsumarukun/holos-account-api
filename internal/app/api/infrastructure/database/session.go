@@ -63,26 +63,31 @@ func (r *sessionRepository) Delete(ctx context.Context, session *entity.Session)
 func (r *sessionRepository) FindOneByAccountID(ctx context.Context, accountID uuid.UUID) (*entity.Session, error) {
 	const errMessage = "faild to find session by account_id"
 
-	driver := transaction.GetDriver(ctx, r.db)
-	var model model.SessionModel
-
-	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`, accountID).StructScan(&model); err != nil {
-		if stderr.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, errors.Wrap(err, errors.CodeInternalServerError, errMessage)
-	}
-
-	return transformer.ToSessionEntity(&model), nil
+	return r.findOne(
+		ctx,
+		`SELECT account_id, token, expires_at FROM sessions WHERE account_id = ?;`,
+		[]any{accountID},
+		errMessage,
+	)
 }
 
 func (r *sessionRepository) FindOneByTokenAndNotExpired(ctx context.Context, token string) (*entity.Session, error) {
 	const errMessage = "faild to find session by tolen and not expired"
 
+	return r.findOne(
+		ctx,
+		`SELECT account_id, token, expires_at FROM sessions WHERE token = ? AND expires_at > NOW(6);`,
+		[]any{token},
+		errMessage,
+	)
+}
+
+// nolint:dupl // 集約単位のrepository実装. 集約境界を保つためrepository間での共通化は行わず重複を許容.
+func (r *sessionRepository) findOne(ctx context.Context, query string, args []any, errMessage string) (*entity.Session, error) {
 	driver := transaction.GetDriver(ctx, r.db)
 	var model model.SessionModel
 
-	if err := driver.QueryRowxContext(ctx, `SELECT account_id, token, expires_at FROM sessions WHERE token = ? AND expires_at > NOW(6);`, token).StructScan(&model); err != nil {
+	if err := driver.QueryRowxContext(ctx, query, args...).StructScan(&model); err != nil {
 		if stderr.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

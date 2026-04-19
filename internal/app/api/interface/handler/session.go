@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
@@ -11,7 +12,6 @@ import (
 	hdlerr "github.com/atsumarukun/holos-account-api/internal/app/api/interface/pkg/errors"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/interface/schema"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/usecase"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 type SessionHandler interface {

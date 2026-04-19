@@ -5,9 +5,10 @@ import (
 	"context"
 	stderr "errors"
 
+	"github.com/atsumarukun/holos-api-pkg/errors"
+
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
-	"github.com/atsumarukun/holos-api-pkg/errors"
 )
 
 var ErrAccountNameAlreadyInUse = stderr.New("account name already in use")
