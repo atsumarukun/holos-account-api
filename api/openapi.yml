@@ -50,7 +50,7 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session token"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/delete_account"
       responses:
@@ -76,7 +76,7 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session token"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_name"
       responses:
@@ -106,7 +106,7 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session token"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       requestBody:
         $ref: "#/components/requestBodies/update_account_password"
       responses:
@@ -150,7 +150,7 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session token"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         204:
           $ref: "#/components/responses/no_content"
@@ -172,7 +172,7 @@ paths:
             type: "string"
           required: true
           description: "セッショントークン"
-          example: "Session token"
+          example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         200:
           $ref: "#/components/responses/authorization"
@@ -193,18 +193,18 @@ components:
       properties:
         id:
           type: "string"
-          example: "id"
+          example: "397bde64-8042-4e38-bca0-a4ba9f4f0e5f"
           readOnly: true
         name:
           type: "string"
-          example: "name"
+          example: "develop"
         password:
           type: "string"
-          example: "password"
+          example: "b8U*|5DTEl7N"
           writeOnly: true
         confirm_password:
           type: "string"
-          example: "password"
+          example: "b8U*|5DTEl7N"
           writeOnly: true
       required:
         - "id"
@@ -216,18 +216,18 @@ components:
       properties:
         account_name:
           type: "string"
-          example: "name"
+          example: "develop"
           writeOnly: true
         password:
           type: "string"
-          example: "password"
+          example: "b8U*|5DTEl7N"
           writeOnly: true
     session:
       type: "object"
       properties:
         token:
           type: "string"
-          example: "token"
+          example: "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
           readOnly: true
 
   requestBodies:
@@ -261,7 +261,7 @@ components:
                     readOnly: true
                   new_password:
                     type: "string"
-                    example: "password"
+                    example: "G922x£4a2W:2"
     delete_account:
       required: true
       content:
@@ -333,7 +333,7 @@ components:
     bad_request:
       description: "Bad Request"
       content:
-        text/plain:
+        application/json:
           schema:
             type: "object"
             properties:
@@ -349,7 +349,7 @@ components:
     unauthenticated:
       description: "Unauthenticated"
       content:
-        text/plain:
+        application/json:
           schema:
             type: "object"
             properties:
@@ -365,7 +365,7 @@ components:
     duplicate:
       description: "Duplicate"
       content:
-        text/plain:
+        application/json:
           schema:
             type: "object"
             properties:
@@ -381,7 +381,7 @@ components:
     invalid_input:
       description: "Invalid Input"
       content:
-        text/plain:
+        application/json:
           schema:
             type: "object"
             properties:
@@ -397,7 +397,7 @@ components:
     internal_server_error:
       description: "Internal Server Error"
       content:
-        text/plain:
+        application/json:
           schema:
             type: "object"
             properties:
