@@ -2,7 +2,7 @@ package transformer
 
 import (
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/model"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/model"
 )
 
 func ToAccountModel(account *entity.Account) *model.AccountModel {
