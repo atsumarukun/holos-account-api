@@ -18,10 +18,9 @@ import (
 var ErrSessionNotFound = stderr.New("session not found")
 
 type SessionUsecase interface {
-	Login(context.Context, string, string) (*dto.SessionDTO, error)
-	Logout(context.Context, uuid.UUID) error
-	Authenticate(context.Context, string) (*dto.AccountDTO, error)
-	Authorize(context.Context, uuid.UUID) (*dto.AccountDTO, error)
+	Create(context.Context, string, string) (*dto.SessionDTO, error)
+	Delete(context.Context, uuid.UUID) error
+	Verify(context.Context, string) (*dto.AccountDTO, error)
 }
 
 type sessionUsecase struct {
@@ -42,7 +41,7 @@ func NewSessionUsecase(
 	}
 }
 
-func (u *sessionUsecase) Login(ctx context.Context, accountName, password string) (*dto.SessionDTO, error) {
+func (u *sessionUsecase) Create(ctx context.Context, accountName, password string) (*dto.SessionDTO, error) {
 	var session *entity.Session
 
 	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
@@ -51,7 +50,7 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 			return err
 		}
 		if account == nil {
-			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to login")
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to create session")
 		}
 
 		if err := account.VerifyPassword(password); err != nil {
@@ -71,7 +70,7 @@ func (u *sessionUsecase) Login(ctx context.Context, accountName, password string
 	return mapper.ToSessionDTO(session), nil
 }
 
-func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error {
+func (u *sessionUsecase) Delete(ctx context.Context, accountID uuid.UUID) error {
 	return u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
 		session, err := u.sessionRepo.FindOneByAccountID(ctx, accountID)
 		if err != nil {
@@ -85,7 +84,7 @@ func (u *sessionUsecase) Logout(ctx context.Context, accountID uuid.UUID) error 
 	})
 }
 
-func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.AccountDTO, error) {
+func (u *sessionUsecase) Verify(ctx context.Context, token string) (*dto.AccountDTO, error) {
 	var account *entity.Account
 
 	if err := u.transactionObj.Transaction(ctx, func(ctx context.Context) error {
@@ -94,7 +93,7 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 			return err
 		}
 		if session == nil {
-			return errors.Wrap(ErrSessionNotFound, errors.CodeUnauthenticated, "failed to authenticate")
+			return errors.Wrap(ErrSessionNotFound, errors.CodeUnauthenticated, "failed to verify")
 		}
 
 		account, err = u.accountRepo.FindOneByID(ctx, session.AccountID)
@@ -102,24 +101,12 @@ func (u *sessionUsecase) Authenticate(ctx context.Context, token string) (*dto.A
 			return err
 		}
 		if account == nil {
-			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to authenticate")
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to verify")
 		}
 
 		return nil
 	}); err != nil {
 		return nil, err
-	}
-
-	return mapper.ToAccountDTO(account), nil
-}
-
-func (u *sessionUsecase) Authorize(ctx context.Context, accountID uuid.UUID) (*dto.AccountDTO, error) {
-	account, err := u.accountRepo.FindOneByID(ctx, accountID)
-	if err != nil {
-		return nil, err
-	}
-	if account == nil {
-		return nil, errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to authorize")
 	}
 
 	return mapper.ToAccountDTO(account), nil

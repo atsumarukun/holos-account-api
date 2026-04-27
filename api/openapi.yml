@@ -126,10 +126,10 @@ paths:
       tags:
         - "session"
       requestBody:
-        $ref: "#/components/requestBodies/login"
+        $ref: "#/components/requestBodies/create_session"
       responses:
         201:
-          $ref: "#/components/responses/login"
+          $ref: "#/components/responses/create_session"
         400:
           $ref: "#/components/responses/bad_request"
         401:
@@ -174,7 +174,7 @@ paths:
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         200:
-          $ref: "#/components/responses/authorization"
+          $ref: "#/components/responses/verified_session"
         401:
           $ref: "#/components/responses/unauthenticated"
         500:
@@ -274,7 +274,7 @@ components:
                     readOnly: true
                   confirm_password:
                     readOnly: true
-    login:
+    create_session:
       required: true
       content:
         application/json:
@@ -315,13 +315,13 @@ components:
                 properties:
                   id:
                     writeOnly: true
-    login:
+    create_session:
       description: "Success"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/session"
-    authorization:
+    verified_session:
       description: "Success"
       content:
         application/json:

@@ -41,7 +41,7 @@ func (m *authenticationMiddleware) Authenticate(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	account, err := m.sessionUC.Authenticate(ctx, sessionToken[1])
+	account, err := m.sessionUC.Verify(ctx, sessionToken[1])
 	if err != nil {
 		hdlerr.Handle(c, err)
 		c.Abort()

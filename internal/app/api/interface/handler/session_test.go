@@ -45,7 +45,7 @@ func TestSession_Create(t *testing.T) {
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Login(gomock.Any(), gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(sessionDTO, nil).
 					Times(1)
 			},
@@ -65,7 +65,7 @@ func TestSession_Create(t *testing.T) {
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Login(gomock.Any(), gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil, errors.Wrap(entity.ErrAccountPasswordIncorrect, errors.CodeUnauthenticated, "failed to verify account password")).
 					Times(1)
 			},
@@ -78,7 +78,7 @@ func TestSession_Create(t *testing.T) {
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Login(gomock.Any(), gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by name")).
 					Times(1)
 			},
@@ -136,7 +136,7 @@ func TestSession_Delete(t *testing.T) {
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Logout(gomock.Any(), gomock.Any()).
+					Delete(gomock.Any(), gomock.Any()).
 					Return(nil).
 					Times(1)
 			},
@@ -156,7 +156,7 @@ func TestSession_Delete(t *testing.T) {
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Logout(gomock.Any(), gomock.Any()).
+					Delete(gomock.Any(), gomock.Any()).
 					Return(errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by account_id")).
 					Times(1)
 			},
@@ -209,41 +209,41 @@ func TestSession_Verify(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                  string
-		hasAccountIDInContext bool
-		expectResponse        []byte
-		expectCode            int
-		setMockSessionUC      func(*usecase.MockSessionUsecase)
+		name                string
+		authorizationHeader string
+		expectResponse      []byte
+		expectCode          int
+		setMockSessionUC    func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:                  "successfully verified",
-			hasAccountIDInContext: true,
-			expectResponse:        fmt.Appendf(nil, `{"id":"%s","name":"%s"}`, accountDTO.ID, accountDTO.Name),
-			expectCode:            http.StatusOK,
+			name:                "successfully verified",
+			authorizationHeader: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResponse:      fmt.Appendf(nil, `{"id":"%s","name":"%s"}`, accountDTO.ID, accountDTO.Name),
+			expectCode:          http.StatusOK,
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authorize(gomock.Any(), gomock.Any()).
+					Verify(gomock.Any(), gomock.Any()).
 					Return(accountDTO, nil).
 					Times(1)
 			},
 		},
 		{
-			name:                  "account id not found",
-			hasAccountIDInContext: false,
-			expectResponse:        []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
-			expectCode:            http.StatusUnauthorized,
-			setMockSessionUC:      func(*usecase.MockSessionUsecase) {},
+			name:                "session token not set",
+			authorizationHeader: "",
+			expectResponse:      []byte(`{"error":{"code":"UNAUTHENTICATED","message":"unauthenticated"}}`),
+			expectCode:          http.StatusUnauthorized,
+			setMockSessionUC:    func(*usecase.MockSessionUsecase) {},
 		},
 		{
-			name:                  "internal server error",
-			hasAccountIDInContext: true,
-			expectResponse:        []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
-			expectCode:            http.StatusInternalServerError,
+			name:                "internal server error",
+			authorizationHeader: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
+			expectResponse:      []byte(`{"error":{"code":"INTERNAL_SERVER_ERROR","message":"internal server error"}}`),
+			expectCode:          http.StatusInternalServerError,
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
 					EXPECT().
-					Authorize(gomock.Any(), gomock.Any()).
+					Verify(gomock.Any(), gomock.Any()).
 					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find session by token and not expired")).
 					Times(1)
 			},
@@ -260,9 +260,7 @@ func TestSession_Verify(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			if tt.hasAccountIDInContext {
-				c.Set("accountID", uuid.New())
-			}
+			c.Request.Header.Add("Authorization", tt.authorizationHeader)
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()

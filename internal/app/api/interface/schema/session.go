@@ -11,7 +11,7 @@ type SessionResponse struct {
 	Token string `json:"token"`
 }
 
-type VerifySessionResponse struct {
+type VerifiedSessionResponse struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
 }

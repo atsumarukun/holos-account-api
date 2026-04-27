@@ -11,8 +11,8 @@ func ToSessionResponse(session *dto.SessionDTO) *schema.SessionResponse {
 	}
 }
 
-func ToAauthorizationResponse(account *dto.AccountDTO) *schema.VerifySessionResponse {
-	return &schema.VerifySessionResponse{
+func ToVerifiedSessionResponse(account *dto.AccountDTO) *schema.VerifiedSessionResponse {
+	return &schema.VerifiedSessionResponse{
 		ID:   account.ID,
 		Name: account.Name,
 	}

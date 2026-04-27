@@ -20,7 +20,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/test/mock/domain/repository/pkg/transaction"
 )
 
-func TestSession_Login(t *testing.T) {
+func TestSession_Create(t *testing.T) {
 	account := &entity.Account{
 		ID:       uuid.New(),
 		Name:     "name",
@@ -43,7 +43,7 @@ func TestSession_Login(t *testing.T) {
 		setMockAccountRepo    func(*repository.MockAccountRepository)
 	}{
 		{
-			name:             "successfully loggedin",
+			name:             "successfully created",
 			inputAccountName: "name",
 			inputPassword:    "password",
 			expectResult:     sessionDTO,
@@ -192,7 +192,7 @@ func TestSession_Login(t *testing.T) {
 			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
-			result, err := uc.Login(ctx, tt.inputAccountName, tt.inputPassword)
+			result, err := uc.Create(ctx, tt.inputAccountName, tt.inputPassword)
 			assert.Error(t, err, tt.expectError)
 
 			opts := cmp.Options{
@@ -205,7 +205,7 @@ func TestSession_Login(t *testing.T) {
 	}
 }
 
-func TestSession_Logout(t *testing.T) {
+func TestSession_Delete(t *testing.T) {
 	session := &entity.Session{
 		AccountID: uuid.New(),
 		Token:     "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
@@ -220,7 +220,7 @@ func TestSession_Logout(t *testing.T) {
 		setMockSessionRepo    func(*repository.MockSessionRepository)
 	}{
 		{
-			name:           "successfully loggedout",
+			name:           "successfully deleted",
 			inputAccountID: session.AccountID,
 			expectError:    nil,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
@@ -328,13 +328,13 @@ func TestSession_Logout(t *testing.T) {
 			tt.setMockSessionRepo(sessionRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, nil)
-			err := uc.Logout(ctx, tt.inputAccountID)
+			err := uc.Delete(ctx, tt.inputAccountID)
 			assert.Error(t, err, tt.expectError)
 		})
 	}
 }
 
-func TestSession_Authenticate(t *testing.T) {
+func TestSession_Verify(t *testing.T) {
 	account := &entity.Account{
 		ID:       uuid.New(),
 		Name:     "name",
@@ -361,7 +361,7 @@ func TestSession_Authenticate(t *testing.T) {
 		setMockAccountRepo    func(*repository.MockAccountRepository)
 	}{
 		{
-			name:         "successfully authenticated",
+			name:         "successfully verified",
 			inputToken:   "1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS",
 			expectResult: accountDTO,
 			expectError:  nil,
@@ -512,87 +512,7 @@ func TestSession_Authenticate(t *testing.T) {
 			tt.setMockAccountRepo(accountRepo)
 
 			uc := usecase.NewSessionUsecase(transactionObj, sessionRepo, accountRepo)
-			result, err := uc.Authenticate(ctx, tt.inputToken)
-			assert.Error(t, err, tt.expectError)
-
-			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
-				t.Error(diff)
-			}
-		})
-	}
-}
-
-func TestSession_Authorize(t *testing.T) {
-	account := &entity.Account{
-		ID:       uuid.New(),
-		Name:     "name",
-		Password: "$2a$10$o7qO5pbzyAfDkBcx7Mbw9.cNCyY9V/jTjPzdSMbbwb6IixUHg3PZK",
-	}
-	accountDTO := &dto.AccountDTO{
-		ID:       account.ID,
-		Name:     account.Name,
-		Password: account.Password,
-	}
-
-	tests := []struct {
-		name               string
-		inputAccountID     uuid.UUID
-		expectResult       *dto.AccountDTO
-		expectError        error
-		setMockAccountRepo func(*repository.MockAccountRepository)
-	}{
-		{
-			name:           "successfully authorized",
-			inputAccountID: account.ID,
-			expectResult:   accountDTO,
-			expectError:    nil,
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
-				accountRepo.
-					EXPECT().
-					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(account, nil).
-					Times(1)
-			},
-		},
-		{
-			name:           "account not found",
-			inputAccountID: account.ID,
-			expectResult:   nil,
-			expectError:    usecase.ErrAccountNotFound,
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
-				accountRepo.
-					EXPECT().
-					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, nil).
-					Times(1)
-			},
-		},
-		{
-			name:           "find account error",
-			inputAccountID: account.ID,
-			expectResult:   nil,
-			expectError:    sql.ErrConnDone,
-			setMockAccountRepo: func(accountRepo *repository.MockAccountRepository) {
-				accountRepo.
-					EXPECT().
-					FindOneByID(gomock.Any(), gomock.Any()).
-					Return(nil, errors.Wrap(sql.ErrConnDone, errors.CodeInternalServerError, "failed to find account by id")).
-					Times(1)
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			ctx := t.Context()
-
-			accountRepo := repository.NewMockAccountRepository(ctrl)
-			tt.setMockAccountRepo(accountRepo)
-
-			uc := usecase.NewSessionUsecase(nil, nil, accountRepo)
-			result, err := uc.Authorize(ctx, tt.inputAccountID)
+			result, err := uc.Verify(ctx, tt.inputToken)
 			assert.Error(t, err, tt.expectError)
 
 			if diff := cmp.Diff(tt.expectResult, result); diff != "" {
