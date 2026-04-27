@@ -6,6 +6,10 @@ import (
 )
 
 func ToAccountDTO(account *entity.Account) *dto.AccountDTO {
+	if account == nil {
+		return nil
+	}
+
 	return &dto.AccountDTO{
 		ID:       account.ID,
 		Name:     account.Name,

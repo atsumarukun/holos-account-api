@@ -11,9 +11,9 @@ import (
 
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/entity"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/domain/repository"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/model"
 	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/pkg/transaction"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/model"
-	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/transformer"
+	"github.com/atsumarukun/holos-account-api/internal/app/api/infrastructure/database/transformer"
 )
 
 type accountRepository struct {

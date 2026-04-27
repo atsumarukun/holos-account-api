@@ -6,6 +6,10 @@ import (
 )
 
 func ToAccountResponse(account *dto.AccountDTO) *schema.AccountResponse {
+	if account == nil {
+		return nil
+	}
+
 	return &schema.AccountResponse{
 		Name: account.Name,
 	}

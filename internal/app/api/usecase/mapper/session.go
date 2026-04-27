@@ -6,6 +6,10 @@ import (
 )
 
 func ToSessionDTO(session *entity.Session) *dto.SessionDTO {
+	if session == nil {
+		return nil
+	}
+
 	return &dto.SessionDTO{
 		AccountID: session.AccountID,
 		Token:     session.Token,
