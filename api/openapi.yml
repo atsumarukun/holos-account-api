@@ -120,25 +120,24 @@ paths:
           $ref: "#/components/responses/invalid_input"
         500:
           $ref: "#/components/responses/internal_server_error"
-  /login:
+  /sessions:
     post:
-      summary: "ログイン"
+      summary: "セッション作成"
       tags:
         - "session"
       requestBody:
-        $ref: "#/components/requestBodies/login"
+        $ref: "#/components/requestBodies/create_session"
       responses:
-        200:
-          $ref: "#/components/responses/login"
+        201:
+          $ref: "#/components/responses/create_session"
         400:
           $ref: "#/components/responses/bad_request"
         401:
           $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
-  /logout:
     delete:
-      summary: "ログアウト"
+      summary: "セッション削除"
       tags:
         - "session"
       security:
@@ -158,9 +157,9 @@ paths:
           $ref: "#/components/responses/unauthenticated"
         500:
           $ref: "#/components/responses/internal_server_error"
-  /authorization:
+  /sessions/verify:
     get:
-      summary: "認可"
+      summary: "セッション検証"
       tags:
         - "session"
       security:
@@ -175,7 +174,7 @@ paths:
           example: "Session 1Ty1HKTPKTt8xEi-_3HTbWf2SCHOdqOS"
       responses:
         200:
-          $ref: "#/components/responses/authorization"
+          $ref: "#/components/responses/verified_session"
         401:
           $ref: "#/components/responses/unauthenticated"
         500:
@@ -275,7 +274,7 @@ components:
                     readOnly: true
                   confirm_password:
                     readOnly: true
-    login:
+    create_session:
       required: true
       content:
         application/json:
@@ -316,13 +315,13 @@ components:
                 properties:
                   id:
                     writeOnly: true
-    login:
+    create_session:
       description: "Success"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/session"
-    authorization:
+    verified_session:
       description: "Success"
       content:
         application/json:

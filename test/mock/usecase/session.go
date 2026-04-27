@@ -42,61 +42,46 @@ func (m *MockSessionUsecase) EXPECT() *MockSessionUsecaseMockRecorder {
 	return m.recorder
 }
 
-// Authenticate mocks base method.
-func (m *MockSessionUsecase) Authenticate(arg0 context.Context, arg1 string) (*dto.AccountDTO, error) {
+// Create mocks base method.
+func (m *MockSessionUsecase) Create(arg0 context.Context, arg1, arg2 string) (*dto.SessionDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authenticate", arg0, arg1)
-	ret0, _ := ret[0].(*dto.AccountDTO)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Authenticate indicates an expected call of Authenticate.
-func (mr *MockSessionUsecaseMockRecorder) Authenticate(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockSessionUsecase)(nil).Authenticate), arg0, arg1)
-}
-
-// Authorize mocks base method.
-func (m *MockSessionUsecase) Authorize(arg0 context.Context, arg1 uuid.UUID) (*dto.AccountDTO, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authorize", arg0, arg1)
-	ret0, _ := ret[0].(*dto.AccountDTO)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Authorize indicates an expected call of Authorize.
-func (mr *MockSessionUsecaseMockRecorder) Authorize(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockSessionUsecase)(nil).Authorize), arg0, arg1)
-}
-
-// Login mocks base method.
-func (m *MockSessionUsecase) Login(arg0 context.Context, arg1, arg2 string) (*dto.SessionDTO, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*dto.SessionDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Login indicates an expected call of Login.
-func (mr *MockSessionUsecaseMockRecorder) Login(arg0, arg1, arg2 any) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockSessionUsecaseMockRecorder) Create(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockSessionUsecase)(nil).Login), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSessionUsecase)(nil).Create), arg0, arg1, arg2)
 }
 
-// Logout mocks base method.
-func (m *MockSessionUsecase) Logout(arg0 context.Context, arg1 uuid.UUID) error {
+// Delete mocks base method.
+func (m *MockSessionUsecase) Delete(arg0 context.Context, arg1 uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Logout", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Logout indicates an expected call of Logout.
-func (mr *MockSessionUsecaseMockRecorder) Logout(arg0, arg1 any) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockSessionUsecaseMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockSessionUsecase)(nil).Logout), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSessionUsecase)(nil).Delete), arg0, arg1)
+}
+
+// Verify mocks base method.
+func (m *MockSessionUsecase) Verify(arg0 context.Context, arg1 string) (*dto.AccountDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", arg0, arg1)
+	ret0, _ := ret[0].(*dto.AccountDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockSessionUsecaseMockRecorder) Verify(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockSessionUsecase)(nil).Verify), arg0, arg1)
 }
