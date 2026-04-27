@@ -21,7 +21,7 @@ import (
 	"github.com/atsumarukun/holos-account-api/test/mock/usecase"
 )
 
-func TestSession_Logtin(t *testing.T) {
+func TestSession_Create(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	sessionDTO := &dto.SessionDTO{
@@ -38,9 +38,9 @@ func TestSession_Logtin(t *testing.T) {
 		setMockSessionUC func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:           "successfully loggedin",
+			name:           "successfully created",
 			requestBody:    []byte(`{"account_name":"name","password":"password"}`),
-			expectCode:     http.StatusOK,
+			expectCode:     http.StatusCreated,
 			expectResponse: fmt.Appendf(nil, `{"token":"%s"}`, sessionDTO.Token),
 			setMockSessionUC: func(sessionUC *usecase.MockSessionUsecase) {
 				sessionUC.
@@ -91,7 +91,7 @@ func TestSession_Logtin(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/login", bytes.NewBuffer(tt.requestBody))
+			c.Request, err = http.NewRequestWithContext(ctx, "POST", "/sessions", bytes.NewBuffer(tt.requestBody))
 			if err != nil {
 				t.Error(err)
 			}
@@ -103,7 +103,7 @@ func TestSession_Logtin(t *testing.T) {
 			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
-			hdl.Login(c)
+			hdl.Create(c)
 
 			c.Writer.WriteHeaderNow()
 
@@ -118,7 +118,7 @@ func TestSession_Logtin(t *testing.T) {
 	}
 }
 
-func TestSession_Logout(t *testing.T) {
+func TestSession_Delete(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
@@ -129,7 +129,7 @@ func TestSession_Logout(t *testing.T) {
 		setMockSessionUC      func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:                  "successfully loggedout",
+			name:                  "successfully deleted",
 			hasAccountIDInContext: true,
 			expectResponse:        nil,
 			expectCode:            http.StatusNoContent,
@@ -169,7 +169,7 @@ func TestSession_Logout(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/logout", http.NoBody)
+			c.Request, err = http.NewRequestWithContext(ctx, "DELETE", "/sessions", http.NoBody)
 			if err != nil {
 				t.Error(err)
 			}
@@ -184,7 +184,7 @@ func TestSession_Logout(t *testing.T) {
 			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
-			hdl.Logout(c)
+			hdl.Delete(c)
 
 			c.Writer.WriteHeaderNow()
 
@@ -199,7 +199,7 @@ func TestSession_Logout(t *testing.T) {
 	}
 }
 
-func TestSession_Authorize(t *testing.T) {
+func TestSession_Verify(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	accountDTO := &dto.AccountDTO{
@@ -216,7 +216,7 @@ func TestSession_Authorize(t *testing.T) {
 		setMockSessionUC      func(*usecase.MockSessionUsecase)
 	}{
 		{
-			name:                  "successfully authorized",
+			name:                  "successfully verified",
 			hasAccountIDInContext: true,
 			expectResponse:        fmt.Appendf(nil, `{"id":"%s","name":"%s"}`, accountDTO.ID, accountDTO.Name),
 			expectCode:            http.StatusOK,
@@ -256,7 +256,7 @@ func TestSession_Authorize(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			var err error
-			c.Request, err = http.NewRequestWithContext(ctx, "GET", "/authorization", http.NoBody)
+			c.Request, err = http.NewRequestWithContext(ctx, "GET", "/sessions/verify", http.NoBody)
 			if err != nil {
 				t.Error(err)
 			}
@@ -271,7 +271,7 @@ func TestSession_Authorize(t *testing.T) {
 			tt.setMockSessionUC(sessionUC)
 
 			hdl := handler.NewSessionHandler(sessionUC)
-			hdl.Authorize(c)
+			hdl.Verify(c)
 
 			c.Writer.WriteHeaderNow()
 

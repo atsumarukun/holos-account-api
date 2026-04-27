@@ -15,9 +15,9 @@ import (
 )
 
 type SessionHandler interface {
-	Login(*gin.Context)
-	Logout(*gin.Context)
-	Authorize(*gin.Context)
+	Create(*gin.Context)
+	Delete(*gin.Context)
+	Verify(*gin.Context)
 }
 
 type sessionHandler struct {
@@ -30,8 +30,8 @@ func NewSessionHandler(sessionUC usecase.SessionUsecase) SessionHandler {
 	}
 }
 
-func (h *sessionHandler) Login(c *gin.Context) {
-	var req schema.LoginRequest
+func (h *sessionHandler) Create(c *gin.Context) {
+	var req schema.CreateSessionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		hdlerr.Handle(c, errors.Wrap(err, errors.CodeBadRequest, "failed to login"))
 		return
@@ -45,10 +45,10 @@ func (h *sessionHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, builder.ToSessionResponse(session))
+	c.JSON(http.StatusCreated, builder.ToSessionResponse(session))
 }
 
-func (h *sessionHandler) Logout(c *gin.Context) {
+func (h *sessionHandler) Delete(c *gin.Context) {
 	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
 	if err != nil {
 		hdlerr.Handle(c, errors.Wrap(err, errors.CodeUnauthenticated, "failed to logout"))
@@ -65,7 +65,7 @@ func (h *sessionHandler) Logout(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (h *sessionHandler) Authorize(c *gin.Context) {
+func (h *sessionHandler) Verify(c *gin.Context) {
 	accountID, err := parameter.GetContextParameter[uuid.UUID](c, "accountID")
 	if err != nil {
 		hdlerr.Handle(c, errors.Wrap(err, errors.CodeUnauthenticated, "failed to authorize"))
