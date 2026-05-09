@@ -135,7 +135,7 @@ func (u *accountUsecase) Delete(ctx context.Context, id uuid.UUID, password stri
 			return err
 		}
 		if account == nil {
-			return nil
+			return errors.Wrap(ErrAccountNotFound, errors.CodeUnauthenticated, "failed to delete account")
 		}
 
 		if err := account.VerifyPassword(password); err != nil {
