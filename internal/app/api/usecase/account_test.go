@@ -715,7 +715,7 @@ func TestAccount_Delete(t *testing.T) {
 			name:          "account not found",
 			inputID:       account.ID,
 			inputPassword: "password",
-			expectError:   nil,
+			expectError:   usecase.ErrAccountNotFound,
 			setMockTransactionObj: func(transactionObj *transaction.MockTransactionObject) {
 				transactionObj.
 					EXPECT().
