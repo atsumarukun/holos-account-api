@@ -2,7 +2,6 @@ FROM golang:1.27.3@sha256:2920bb124f1a2e12a1d39f0cab756ae0068441ee1da7655dec7f5e
 
 ARG UID=1000 USERNAME=developer
 RUN useradd -u $UID -m $USERNAME
-
 USER $USERNAME
 
 RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1 && \
